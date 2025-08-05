@@ -63,6 +63,8 @@ export type TrackedToolCall =
   | TrackedCompletedToolCall
   | TrackedCancelledToolCall;
 
+import { useTerminalSize } from './useTerminalSize.js';
+
 export function useReactToolScheduler(
   onComplete: (tools: CompletedToolCall[]) => void,
   config: Config,
@@ -71,6 +73,7 @@ export function useReactToolScheduler(
   >,
   getPreferredEditor: () => EditorType | undefined,
 ): [TrackedToolCall[], ScheduleFn, MarkToolsAsSubmittedFn] {
+  const terminalSize = useTerminalSize();
   const [toolCallsForDisplay, setToolCallsForDisplay] = useState<
     TrackedToolCall[]
   >([]);
@@ -140,6 +143,7 @@ export function useReactToolScheduler(
         onToolCallsUpdate: toolCallsUpdateHandler,
         getPreferredEditor,
         config,
+        getTerminalSize: () => terminalSize,
       }),
     [
       config,
@@ -147,6 +151,7 @@ export function useReactToolScheduler(
       allToolCallsCompleteHandler,
       toolCallsUpdateHandler,
       getPreferredEditor,
+      terminalSize,
     ],
   );
 
