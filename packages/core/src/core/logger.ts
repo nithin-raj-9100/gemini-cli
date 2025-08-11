@@ -239,23 +239,26 @@ export class Logger {
       throw new Error('Checkpoint file path not set.');
     }
 
-    // Decode the tag to handle URL-encoded characters like %2F, which could
-    // be used to disguise path traversal attempts.
-    const decodedTag = decodeURIComponent(tag);
-
-    // Normalize both `\` and `/` to check for path traversal.
-    const normalizedTag = decodedTag.replace(/\\/g, '/');
-
-    // If the normalized tag contains a separator, it's unsafe.
-    if (path.basename(normalizedTag) !== normalizedTag) {
-      // If it's unsafe, perform aggressive sanitization on the original tag.
+    let finalTag: string;
+    try {
+      // Decode the tag to handle URL-encoded characters like %2F, which could
+      // be used to disguise path traversal attempts.
+      const decodedTag = decodeURIComponent(tag);
+      // Normalize both `\` and `/` to check for path traversal.
+      const normalizedTag = decodedTag.replace(/\\/g, '/');
+      // path.basename() will throw on null bytes, which will be caught below.
+      if (path.basename(normalizedTag) !== normalizedTag) {
+        // Unsafe due to path separators. Fall through to catch for sanitization.
+        throw new Error('Path traversal attempt');
+      }
+      // Tag is safe, use the decoded version.
+      finalTag = decodedTag || 'default';
+    } catch (error) {
+      // Fallback for malformed URI sequences, path traversal, or other errors.
       const sanitizedTag = tag.replace(/[^a-zA-Z0-9-_]/g, '');
-      const finalTag = sanitizedTag || 'default';
-      return path.join(this.geminiDir, `checkpoint-${finalTag}.json`);
+      finalTag = sanitizedTag || 'default';
+      console.error('Error when attempting to form tag file name');
     }
-
-    // If we are here, the tag is safe from traversal.
-    const finalTag = decodedTag || 'default';
     return path.join(this.geminiDir, `checkpoint-${finalTag}.json`);
   }
 
