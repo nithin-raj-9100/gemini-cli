@@ -231,7 +231,7 @@ export class Logger {
     }
   }
 
-  async _checkpointPath(tag: string): Promise<string> {
+  _checkpointPath(tag: string) {
     if (!tag.length) {
       throw new Error('No checkpoint tag specified.');
     }
@@ -269,7 +269,7 @@ export class Logger {
       );
       return;
     }
-    const path = await this._checkpointPath(tag);
+    const path = this._checkpointPath(tag);
     try {
       await fs.writeFile(path, JSON.stringify(conversation, null, 2), 'utf-8');
     } catch (error) {
@@ -285,7 +285,7 @@ export class Logger {
       return [];
     }
 
-    const path = await this._checkpointPath(tag);
+    const path = this._checkpointPath(tag);
     try {
       const fileContent = await fs.readFile(path, 'utf-8');
       const parsedContent = JSON.parse(fileContent);
@@ -315,7 +315,7 @@ export class Logger {
       return false;
     }
 
-    const path = await this._checkpointPath(tag);
+    const path = this._checkpointPath(tag);
 
     try {
       await fs.unlink(path);
@@ -337,7 +337,7 @@ export class Logger {
         'Logger not initialized. Cannot check for checkpoint existence.',
       );
     }
-    const filePath = await this._checkpointPath(tag);
+    const filePath = this._checkpointPath(tag);
     try {
       await fs.access(filePath);
       return true;
