@@ -12,7 +12,6 @@ import {
   beforeEach,
   afterEach,
   afterAll,
-  MockInstance,
 } from 'vitest';
 import { Logger, MessageSenderType, LogEntry } from './logger.js';
 import { promises as fs } from 'node:fs';
