@@ -16,7 +16,7 @@ import {
 
 interface BaseTelemetryEvent {
   'event.name': string;
-  'event.timestamp': string; // ISO 
+  'event.timestamp': string; // ISO
 }
 
 type CommonFields = keyof BaseTelemetryEvent;
@@ -165,7 +165,7 @@ export class ApiRequestEvent implements BaseTelemetryEvent {
   }
 }
 
-export class ApiErrorEvent implements BaseTelemetryEvent{
+export class ApiErrorEvent implements BaseTelemetryEvent {
   'event.name': 'api_error';
   'event.timestamp': string; // ISO 8601
   model: string;
@@ -289,7 +289,7 @@ export class NextSpeakerCheckEvent implements BaseTelemetryEvent {
   }
 }
 
-interface SlashCommandEvent extends BaseTelemetryEvent {
+export interface SlashCommandEvent extends BaseTelemetryEvent {
   'event.name': 'slash_command';
   'event.timestamp': string; // ISO 8106
   command: string;
@@ -298,7 +298,9 @@ interface SlashCommandEvent extends BaseTelemetryEvent {
 }
 
 export function makeSlashCommandEvent({
-  command, subcommand, status,
+  command,
+  subcommand,
+  status,
 }: Omit<SlashCommandEvent, CommonFields>): SlashCommandEvent {
   return {
     'event.name': 'slash_command',
@@ -306,7 +308,7 @@ export function makeSlashCommandEvent({
     command,
     subcommand,
     status,
-  }
+  };
 }
 
 export enum SlashCommandStatus {
