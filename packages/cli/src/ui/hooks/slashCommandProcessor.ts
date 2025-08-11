@@ -552,3 +552,15 @@ export const useSlashCommandProcessor = (
     confirmationRequest,
   };
 };
+
+function getCommandRunStatus(
+  result: void | SlashCommandActionReturn,
+): SlashCommandStatus {
+  if (!result) {
+    return SlashCommandStatus.ERROR;
+  } else if (result.type === 'message' && result.messageType === 'error') {
+    return SlashCommandStatus.ERROR;
+  } else {
+    return SlashCommandStatus.SUCCESS;
+  }
+}

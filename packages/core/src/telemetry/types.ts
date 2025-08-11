@@ -16,6 +16,14 @@ import {
 
 interface BaseTelemetryEvent {
   'event.name': string;
+  'event.timestamp': string; // ISO 
+}
+
+type CommonFields = keyof BaseTelemetryEvent;
+
+export class StartSessionEvent implements BaseTelemetryEvent {
+interface BaseTelemetryEvent {
+  'event.name': string;
   'event.timestamp': string; // ISO
 }
 
@@ -68,6 +76,7 @@ export class StartSessionEvent implements BaseTelemetryEvent {
 }
 
 export class EndSessionEvent implements BaseTelemetryEvent {
+export class EndSessionEvent implements BaseTelemetryEvent {
   'event.name': 'end_session';
   'event.timestamp': string; // ISO 8601
   session_id?: string;
@@ -102,6 +111,7 @@ export class UserPromptEvent implements BaseTelemetryEvent {
   }
 }
 
+export class ToolCallEvent implements BaseTelemetryEvent {
 export class ToolCallEvent implements BaseTelemetryEvent {
   'event.name': 'tool_call';
   'event.timestamp': string; // ISO 8601
@@ -149,6 +159,7 @@ export class ToolCallEvent implements BaseTelemetryEvent {
   }
 }
 
+export class ApiRequestEvent implements BaseTelemetryEvent {
 export class ApiRequestEvent implements BaseTelemetryEvent {
   'event.name': 'api_request';
   'event.timestamp': string; // ISO 8601
@@ -198,6 +209,7 @@ export class ApiErrorEvent implements BaseTelemetryEvent {
 }
 
 export class ApiResponseEvent implements BaseTelemetryEvent {
+export class ApiResponseEvent implements BaseTelemetryEvent {
   'event.name': 'api_response';
   'event.timestamp': string; // ISO 8601
   model: string;
@@ -242,6 +254,7 @@ export class ApiResponseEvent implements BaseTelemetryEvent {
 }
 
 export class FlashFallbackEvent implements BaseTelemetryEvent {
+export class FlashFallbackEvent implements BaseTelemetryEvent {
   'event.name': 'flash_fallback';
   'event.timestamp': string; // ISO 8601
   auth_type: string;
@@ -260,6 +273,7 @@ export enum LoopType {
 }
 
 export class LoopDetectedEvent implements BaseTelemetryEvent {
+export class LoopDetectedEvent implements BaseTelemetryEvent {
   'event.name': 'loop_detected';
   'event.timestamp': string; // ISO 8601
   loop_type: LoopType;
@@ -273,6 +287,7 @@ export class LoopDetectedEvent implements BaseTelemetryEvent {
   }
 }
 
+export class NextSpeakerCheckEvent implements BaseTelemetryEvent {
 export class NextSpeakerCheckEvent implements BaseTelemetryEvent {
   'event.name': 'next_speaker_check';
   'event.timestamp': string; // ISO 8601
@@ -317,6 +332,7 @@ export enum SlashCommandStatus {
 }
 
 export class MalformedJsonResponseEvent implements BaseTelemetryEvent {
+export class MalformedJsonResponseEvent implements BaseTelemetryEvent {
   'event.name': 'malformed_json_response';
   'event.timestamp': string; // ISO 8601
   model: string;
@@ -358,5 +374,7 @@ export type TelemetryEvent =
   | NextSpeakerCheckEvent
   | SlashCommandEvent
   | MalformedJsonResponseEvent
+  | IdeConnectionEvent
+  | SlashCommandEvent;
   | IdeConnectionEvent
   | SlashCommandEvent;
