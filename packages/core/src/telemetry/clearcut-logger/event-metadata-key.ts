@@ -174,6 +174,8 @@ export enum EventMetadataKey {
   // Logs the subcommand of the slash command.
   GEMINI_CLI_SLASH_COMMAND_SUBCOMMAND = 42,
 
+  GEMINI_CLI_SLASH_COMMAND_STATUS = 43,
+
   // ==========================================================================
   // Next Speaker Check Event Keys
   // ===========================================================================
