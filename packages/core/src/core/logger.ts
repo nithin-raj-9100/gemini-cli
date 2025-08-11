@@ -253,7 +253,7 @@ export class Logger {
       }
       // Tag is safe, use the decoded version.
       finalTag = decodedTag || 'default';
-    } catch (error) {
+    } catch (_) {
       // Fallback for malformed URI sequences, path traversal, or other errors.
       const sanitizedTag = tag.replace(/[^a-zA-Z0-9-_]/g, '');
       finalTag = sanitizedTag || 'default';
