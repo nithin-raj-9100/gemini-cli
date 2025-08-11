@@ -15,7 +15,6 @@ import { PartUnion, FunctionResponse } from '@google/genai';
 import {
   Config,
   ToolCallRequestInfo,
-  Tool,
   ToolRegistry,
   ToolResult,
   ToolCallConfirmationDetails,
@@ -25,6 +24,9 @@ import {
   Status as ToolCallStatusType,
   ApprovalMode,
   Icon,
+  BaseTool,
+  AnyDeclarativeTool,
+  AnyToolInvocation,
 } from '@google/gemini-cli-core';
 import {
   HistoryItemWithoutId,
@@ -60,46 +62,55 @@ const mockConfig = {
   getDebugMode: () => false,
 };
 
-const mockTool: Tool = {
-  name: 'mockTool',
-  displayName: 'Mock Tool',
-  description: 'A mock tool for testing',
-  icon: Icon.Hammer,
-  toolLocations: vi.fn(),
-  isOutputMarkdown: false,
-  canUpdateOutput: false,
-  schema: {},
-  validateToolParams: vi.fn(),
-  execute: vi.fn(),
-  shouldConfirmExecute: vi.fn(),
-  getDescription: vi.fn((args) => `Description for ${JSON.stringify(args)}`),
-};
+class MockTool extends BaseTool<object, ToolResult> {
+  constructor(
+    name: string,
+    displayName: string,
+    canUpdateOutput = false,
+    shouldConfirm = false,
+    isOutputMarkdown = false,
+  ) {
+    super(
+      name,
+      displayName,
+      'A mock tool for testing',
+      Icon.Hammer,
+      {},
+      isOutputMarkdown,
+      canUpdateOutput,
+    );
+    if (shouldConfirm) {
+      this.shouldConfirmExecute = vi.fn(
+        async (): Promise<ToolCallConfirmationDetails | false> => ({
+          type: 'edit',
+          title: 'Mock Tool Requires Confirmation',
+          onConfirm: mockOnUserConfirmForToolConfirmation,
+          fileName: 'mockToolRequiresConfirmation.ts',
+          fileDiff: 'Mock tool requires confirmation',
+          originalContent: 'Original content',
+          newContent: 'New content',
+        }),
+      );
+    }
+  }
 
-const mockToolWithLiveOutput: Tool = {
-  ...mockTool,
-  name: 'mockToolWithLiveOutput',
-  displayName: 'Mock Tool With Live Output',
-  canUpdateOutput: true,
-};
+  execute = vi.fn();
+  shouldConfirmExecute = vi.fn();
+}
 
+const mockTool = new MockTool('mockTool', 'Mock Tool');
+const mockToolWithLiveOutput = new MockTool(
+  'mockToolWithLiveOutput',
+  'Mock Tool With Live Output',
+  true,
+);
 let mockOnUserConfirmForToolConfirmation: Mock;
-
-const mockToolRequiresConfirmation: Tool = {
-  ...mockTool,
-  name: 'mockToolRequiresConfirmation',
-  displayName: 'Mock Tool Requires Confirmation',
-  shouldConfirmExecute: vi.fn(
-    async (): Promise<ToolCallConfirmationDetails | false> => ({
-      type: 'edit',
-      title: 'Mock Tool Requires Confirmation',
-      onConfirm: mockOnUserConfirmForToolConfirmation,
-      fileName: 'mockToolRequiresConfirmation.ts',
-      fileDiff: 'Mock tool requires confirmation',
-      originalContent: 'Original content',
-      newContent: 'New content',
-    }),
-  ),
-};
+const mockToolRequiresConfirmation = new MockTool(
+  'mockToolRequiresConfirmation',
+  'Mock Tool Requires Confirmation',
+  false,
+  true,
+);
 
 describe('useReactToolScheduler in YOLO Mode', () => {
   let onComplete: Mock;
@@ -657,28 +668,21 @@ describe('useReactToolScheduler', () => {
   });
 
   it('should schedule and execute multiple tool calls', async () => {
-    const tool1 = {
-      ...mockTool,
-      name: 'tool1',
-      displayName: 'Tool 1',
-      execute: vi.fn().mockResolvedValue({
-        llmContent: 'Output 1',
-        returnDisplay: 'Display 1',
-        summary: 'Summary 1',
-      } as ToolResult),
-      shouldConfirmExecute: vi.fn().mockResolvedValue(null),
-    };
-    const tool2 = {
-      ...mockTool,
-      name: 'tool2',
-      displayName: 'Tool 2',
-      execute: vi.fn().mockResolvedValue({
-        llmContent: 'Output 2',
-        returnDisplay: 'Display 2',
-        summary: 'Summary 2',
-      } as ToolResult),
-      shouldConfirmExecute: vi.fn().mockResolvedValue(null),
-    };
+    const tool1 = new MockTool('tool1', 'Tool 1');
+    tool1.execute.mockResolvedValue({
+      llmContent: 'Output 1',
+      returnDisplay: 'Display 1',
+      summary: 'Summary 1',
+    } as ToolResult);
+    tool1.shouldConfirmExecute.mockResolvedValue(null);
+
+    const tool2 = new MockTool('tool2', 'Tool 2');
+    tool2.execute.mockResolvedValue({
+      llmContent: 'Output 2',
+      returnDisplay: 'Display 2',
+      summary: 'Summary 2',
+    } as ToolResult);
+    tool2.shouldConfirmExecute.mockResolvedValue(null);
 
     mockToolRegistry.getTool.mockImplementation((name) => {
       if (name === 'tool1') return tool1;
@@ -816,20 +820,7 @@ describe('mapToDisplay', () => {
     args: { foo: 'bar' },
   };
 
-  const baseTool: Tool = {
-    name: 'testTool',
-    displayName: 'Test Tool Display',
-    description: 'Test Description',
-    isOutputMarkdown: false,
-    canUpdateOutput: false,
-    schema: {},
-    icon: Icon.Hammer,
-    toolLocations: vi.fn(),
-    validateToolParams: vi.fn(),
-    execute: vi.fn(),
-    shouldConfirmExecute: vi.fn(),
-    getDescription: vi.fn((args) => `Desc: ${JSON.stringify(args)}`),
-  };
+  const baseTool = new MockTool('testTool', 'Test Tool Display');
 
   const baseResponse: ToolCallResponseInfo = {
     callId: 'testCallId',
@@ -851,13 +842,15 @@ describe('mapToDisplay', () => {
   // This helps ensure that tool and confirmationDetails are only accessed when they are expected to exist.
   type MapToDisplayExtraProps =
     | {
-        tool?: Tool;
+        tool?: AnyDeclarativeTool;
+        invocation?: AnyToolInvocation;
         liveOutput?: string;
         response?: ToolCallResponseInfo;
         confirmationDetails?: ToolCallConfirmationDetails;
       }
     | {
-        tool: Tool;
+        tool: AnyDeclarativeTool;
+        invocation?: AnyToolInvocation;
         response?: ToolCallResponseInfo;
         confirmationDetails?: ToolCallConfirmationDetails;
       }
@@ -868,10 +861,12 @@ describe('mapToDisplay', () => {
       }
     | {
         confirmationDetails: ToolCallConfirmationDetails;
-        tool?: Tool;
+        tool?: AnyDeclarativeTool;
+        invocation?: AnyToolInvocation;
         response?: ToolCallResponseInfo;
       };
 
+  const baseInvocation = baseTool.build(baseRequest.args);
   const testCases: Array<{
     name: string;
     status: ToolCallStatusType;
@@ -884,7 +879,7 @@ describe('mapToDisplay', () => {
     {
       name: 'validating',
       status: 'validating',
-      extraProps: { tool: baseTool },
+      extraProps: { tool: baseTool, invocation: baseInvocation },
       expectedStatus: ToolCallStatus.Executing,
       expectedName: baseTool.displayName,
       expectedDescription: baseTool.getDescription(baseRequest.args),
@@ -894,6 +889,7 @@ describe('mapToDisplay', () => {
       status: 'awaiting_approval',
       extraProps: {
         tool: baseTool,
+        invocation: baseInvocation,
         confirmationDetails: {
           onConfirm: vi.fn(),
           type: 'edit',
@@ -914,7 +910,7 @@ describe('mapToDisplay', () => {
     {
       name: 'scheduled',
       status: 'scheduled',
-      extraProps: { tool: baseTool },
+      extraProps: { tool: baseTool, invocation: baseInvocation },
       expectedStatus: ToolCallStatus.Pending,
       expectedName: baseTool.displayName,
       expectedDescription: baseTool.getDescription(baseRequest.args),
@@ -922,7 +918,7 @@ describe('mapToDisplay', () => {
     {
       name: 'executing no live output',
       status: 'executing',
-      extraProps: { tool: baseTool },
+      extraProps: { tool: baseTool, invocation: baseInvocation },
       expectedStatus: ToolCallStatus.Executing,
       expectedName: baseTool.displayName,
       expectedDescription: baseTool.getDescription(baseRequest.args),
@@ -930,7 +926,11 @@ describe('mapToDisplay', () => {
     {
       name: 'executing with live output',
       status: 'executing',
-      extraProps: { tool: baseTool, liveOutput: 'Live test output' },
+      extraProps: {
+        tool: baseTool,
+        invocation: baseInvocation,
+        liveOutput: 'Live test output',
+      },
       expectedStatus: ToolCallStatus.Executing,
       expectedResultDisplay: 'Live test output',
       expectedName: baseTool.displayName,
@@ -939,7 +939,11 @@ describe('mapToDisplay', () => {
     {
       name: 'success',
       status: 'success',
-      extraProps: { tool: baseTool, response: baseResponse },
+      extraProps: {
+        tool: baseTool,
+        invocation: baseInvocation,
+        response: baseResponse,
+      },
       expectedStatus: ToolCallStatus.Success,
       expectedResultDisplay: baseResponse.resultDisplay as any,
       expectedName: baseTool.displayName,
@@ -981,6 +985,7 @@ describe('mapToDisplay', () => {
       status: 'cancelled',
       extraProps: {
         tool: baseTool,
+        invocation: baseInvocation,
         response: {
           ...baseResponse,
           resultDisplay: 'Cancelled display',
@@ -1041,12 +1046,21 @@ describe('mapToDisplay', () => {
       request: { ...baseRequest, callId: 'call1' },
       status: 'success',
       tool: baseTool,
+      invocation: baseTool.build(baseRequest.args),
       response: { ...baseResponse, callId: 'call1' },
     } as ToolCall;
+    const toolForCall2 = new MockTool(
+      baseTool.name,
+      baseTool.displayName,
+      false,
+      false,
+      true,
+    );
     const toolCall2: ToolCall = {
       request: { ...baseRequest, callId: 'call2' },
       status: 'executing',
-      tool: { ...baseTool, isOutputMarkdown: true },
+      tool: toolForCall2,
+      invocation: toolForCall2.build(baseRequest.args),
       liveOutput: 'markdown output',
     } as ToolCall;
 
