@@ -14,7 +14,14 @@ import {
   ToolCallDecision,
 } from './tool-call-decision.js';
 
-export class StartSessionEvent {
+interface BaseTelemetryEvent {
+  'event.name': string;
+  'event.timestamp': string; // ISO 
+}
+
+type CommonFields = keyof BaseTelemetryEvent;
+
+export class StartSessionEvent implements BaseTelemetryEvent {
   'event.name': 'cli_config';
   'event.timestamp': string; // ISO 8601
   model: string;
@@ -60,7 +67,7 @@ export class StartSessionEvent {
   }
 }
 
-export class EndSessionEvent {
+export class EndSessionEvent implements BaseTelemetryEvent {
   'event.name': 'end_session';
   'event.timestamp': string; // ISO 8601
   session_id?: string;
@@ -72,7 +79,7 @@ export class EndSessionEvent {
   }
 }
 
-export class UserPromptEvent {
+export class UserPromptEvent implements BaseTelemetryEvent {
   'event.name': 'user_prompt';
   'event.timestamp': string; // ISO 8601
   prompt_length: number;
@@ -95,7 +102,7 @@ export class UserPromptEvent {
   }
 }
 
-export class ToolCallEvent {
+export class ToolCallEvent implements BaseTelemetryEvent {
   'event.name': 'tool_call';
   'event.timestamp': string; // ISO 8601
   function_name: string;
@@ -142,7 +149,7 @@ export class ToolCallEvent {
   }
 }
 
-export class ApiRequestEvent {
+export class ApiRequestEvent implements BaseTelemetryEvent {
   'event.name': 'api_request';
   'event.timestamp': string; // ISO 8601
   model: string;
@@ -158,7 +165,7 @@ export class ApiRequestEvent {
   }
 }
 
-export class ApiErrorEvent {
+export class ApiErrorEvent implements BaseTelemetryEvent{
   'event.name': 'api_error';
   'event.timestamp': string; // ISO 8601
   model: string;
@@ -190,7 +197,7 @@ export class ApiErrorEvent {
   }
 }
 
-export class ApiResponseEvent {
+export class ApiResponseEvent implements BaseTelemetryEvent {
   'event.name': 'api_response';
   'event.timestamp': string; // ISO 8601
   model: string;
@@ -234,7 +241,7 @@ export class ApiResponseEvent {
   }
 }
 
-export class FlashFallbackEvent {
+export class FlashFallbackEvent implements BaseTelemetryEvent {
   'event.name': 'flash_fallback';
   'event.timestamp': string; // ISO 8601
   auth_type: string;
@@ -252,7 +259,7 @@ export enum LoopType {
   LLM_DETECTED_LOOP = 'llm_detected_loop',
 }
 
-export class LoopDetectedEvent {
+export class LoopDetectedEvent implements BaseTelemetryEvent {
   'event.name': 'loop_detected';
   'event.timestamp': string; // ISO 8601
   loop_type: LoopType;
@@ -266,7 +273,7 @@ export class LoopDetectedEvent {
   }
 }
 
-export class NextSpeakerCheckEvent {
+export class NextSpeakerCheckEvent implements BaseTelemetryEvent {
   'event.name': 'next_speaker_check';
   'event.timestamp': string; // ISO 8601
   prompt_id: string;
@@ -282,21 +289,32 @@ export class NextSpeakerCheckEvent {
   }
 }
 
-export class SlashCommandEvent {
+interface SlashCommandEvent extends BaseTelemetryEvent {
   'event.name': 'slash_command';
   'event.timestamp': string; // ISO 8106
   command: string;
   subcommand?: string;
+  status?: SlashCommandStatus;
+}
 
-  constructor(command: string, subcommand?: string) {
-    this['event.name'] = 'slash_command';
-    this['event.timestamp'] = new Date().toISOString();
-    this.command = command;
-    this.subcommand = subcommand;
+export function makeSlashCommandEvent({
+  command, subcommand, status,
+}: Omit<SlashCommandEvent, CommonFields>): SlashCommandEvent {
+  return {
+    'event.name': 'slash_command',
+    'event.timestamp': new Date().toISOString(),
+    command,
+    subcommand,
+    status,
   }
 }
 
-export class MalformedJsonResponseEvent {
+export enum SlashCommandStatus {
+  SUCCESS = 'success',
+  ERROR = 'error',
+}
+
+export class MalformedJsonResponseEvent implements BaseTelemetryEvent {
   'event.name': 'malformed_json_response';
   'event.timestamp': string; // ISO 8601
   model: string;
@@ -338,4 +356,5 @@ export type TelemetryEvent =
   | NextSpeakerCheckEvent
   | SlashCommandEvent
   | MalformedJsonResponseEvent
-  | IdeConnectionEvent;
+  | IdeConnectionEvent
+  | SlashCommandEvent;
