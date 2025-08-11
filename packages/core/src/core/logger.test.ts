@@ -12,6 +12,7 @@ import {
   beforeEach,
   afterEach,
   afterAll,
+  MockInstance,
 } from 'vitest';
 import { Logger, MessageSenderType, LogEntry } from './logger.js';
 import { promises as fs } from 'node:fs';
@@ -612,6 +613,15 @@ describe('Logger', () => {
   });
 
   describe('Path Traversal Security', () => {
+    let consoleErrorSpy: MockInstance;
+
+    beforeEach(
+      () =>
+        (consoleErrorSpy = vi
+          .spyOn(console, 'error')
+          .mockImplementation(() => {})),
+    );
+
     it.each([
       '../../../../etc/passwd',
       '..%2F..%2F..%2F..%2Fetc%2Fpasswd',
@@ -644,6 +654,43 @@ describe('Logger', () => {
         const actualPath = await logger._checkpointPath(tag);
         expect(actualPath).toBe(expectedPath);
       }
+    });
+
+    it('should handle malformed URI sequences', async () => {
+      const malformedTag = 'test%E0%A4%A'; // Incomplete multi-byte sequence
+      const expectedPath = path.join(
+        TEST_GEMINI_DIR,
+        `checkpoint-${malformedTag.replace(/[^a-zA-Z0-9-_]/g, '')}.json`,
+      );
+      const actualPath = await logger._checkpointPath(malformedTag);
+      expect(actualPath).toBe(expectedPath);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Error when attempting to form tag file name',
+      );
+    });
+
+    it('should handle null bytes', async () => {
+      const nullByteTag = 'test%00attack'; // Null byte encoded
+      const decodedTag = decodeURIComponent(nullByteTag);
+      const expectedPath = path.join(
+        TEST_GEMINI_DIR,
+        `checkpoint-${decodedTag}.json`,
+      );
+      const actualPath = await logger._checkpointPath(nullByteTag);
+      expect(actualPath).toBe(expectedPath);
+    });
+
+    it('should trigger aggressive sanitization for explicit path traversal', async () => {
+      const traversalTag = '../../../../etc/passwd';
+      const expectedPath = path.join(
+        TEST_GEMINI_DIR,
+        `checkpoint-${traversalTag.replace(/[^a-zA-Z0-9-_]/g, '')}.json`,
+      );
+      const actualPath = await logger._checkpointPath(traversalTag);
+      expect(actualPath).toBe(expectedPath);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Error when attempting to form tag file name',
+      );
     });
   });
 
