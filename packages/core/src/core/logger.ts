@@ -231,19 +231,30 @@ export class Logger {
     }
   }
 
-  _checkpointPath(tag: string): string {
+  async _checkpointPath(tag: string): Promise<string> {
     if (!tag.length) {
       throw new Error('No checkpoint tag specified.');
     }
     if (!this.geminiDir) {
       throw new Error('Checkpoint file path not set.');
     }
-    // Sanitize tag to prevent directory traversal attacks
-    let sanitizedTag = tag.replace(/[^a-zA-Z0-9-_]/g, '');
-    if (!sanitizedTag) {
-      sanitizedTag = 'default';
+
+    const decodedTag = decodeURIComponent(tag);
+
+    // Normalize both `\` and `/` to check for path traversal.
+    const normalizedTag = decodedTag.replace(/\\/g, '/');
+
+    // If the normalized tag contains a separator, it's unsafe.
+    if (path.basename(normalizedTag) !== normalizedTag) {
+      // If it's unsafe, perform aggressive sanitization on the original tag.
+      const sanitizedTag = tag.replace(/[^a-zA-Z0-9-_]/g, '');
+      const finalTag = sanitizedTag || 'default';
+      return path.join(this.geminiDir, `checkpoint-${finalTag}.json`);
     }
-    return path.join(this.geminiDir, `checkpoint-${sanitizedTag}.json`);
+
+    // If we are here, the tag is safe from traversal.
+    const finalTag = decodedTag || 'default';
+    return path.join(this.geminiDir, `checkpoint-${finalTag}.json`);
   }
 
   async saveCheckpoint(conversation: Content[], tag: string): Promise<void> {
@@ -253,7 +264,7 @@ export class Logger {
       );
       return;
     }
-    const path = this._checkpointPath(tag);
+    const path = await this._checkpointPath(tag);
     try {
       await fs.writeFile(path, JSON.stringify(conversation, null, 2), 'utf-8');
     } catch (error) {
@@ -269,7 +280,7 @@ export class Logger {
       return [];
     }
 
-    const path = this._checkpointPath(tag);
+    const path = await this._checkpointPath(tag);
     try {
       const fileContent = await fs.readFile(path, 'utf-8');
       const parsedContent = JSON.parse(fileContent);
@@ -281,6 +292,11 @@ export class Logger {
       }
       return parsedContent as Content[];
     } catch (error) {
+      const nodeError = error as NodeJS.ErrnoException;
+      if (nodeError.code === 'ENOENT') {
+        // This is okay, it just means the checkpoint doesn't exist.
+        return [];
+      }
       console.error(`Failed to read or parse checkpoint file ${path}:`, error);
       return [];
     }
@@ -294,7 +310,7 @@ export class Logger {
       return false;
     }
 
-    const path = this._checkpointPath(tag);
+    const path = await this._checkpointPath(tag);
 
     try {
       await fs.unlink(path);
@@ -316,7 +332,7 @@ export class Logger {
         'Logger not initialized. Cannot check for checkpoint existence.',
       );
     }
-    const filePath = this._checkpointPath(tag);
+    const filePath = await this._checkpointPath(tag);
     try {
       await fs.access(filePath);
       return true;

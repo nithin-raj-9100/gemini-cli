@@ -611,6 +611,42 @@ describe('Logger', () => {
     });
   });
 
+  describe('Path Traversal Security', () => {
+    it.each([
+      '../../../../etc/passwd',
+      '..%2F..%2F..%2F..%2Fetc%2Fpasswd',
+      '....//....//....//etc/passwd',
+      '..\\..\\..\\..\\boot.ini',
+    ])('should prevent directory traversal for "$attempt"', async (attempt) => {
+      // Replicate the sanitization logic for unsafe paths from the implementation.
+      const sanitized = attempt.replace(/[^a-zA-Z0-9-_]/g, '');
+      const expectedPath = path.join(
+        TEST_GEMINI_DIR,
+        `checkpoint-${sanitized}.json`,
+      );
+
+      const checkpointPath = await logger._checkpointPath(attempt);
+      expect(checkpointPath).toBe(expectedPath);
+    });
+
+    it('should allow Unicode characters in checkpoint tags', async () => {
+      const unicodeTags = [
+        '你好世界', // Chinese
+        'こんにちは', // Japanese
+        'test-你好',
+      ];
+
+      for (const tag of unicodeTags) {
+        const expectedPath = path.join(
+          TEST_GEMINI_DIR,
+          `checkpoint-${tag}.json`,
+        );
+        const actualPath = await logger._checkpointPath(tag);
+        expect(actualPath).toBe(expectedPath);
+      }
+    });
+  });
+
   describe('close', () => {
     it('should reset logger state', async () => {
       await logger.logMessage(MessageSenderType.USER, 'A message');
