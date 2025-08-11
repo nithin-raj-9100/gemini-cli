@@ -239,6 +239,8 @@ export class Logger {
       throw new Error('Checkpoint file path not set.');
     }
 
+    // Decode the tag to handle URL-encoded characters like %2F, which could
+    // be used to disguise path traversal attempts.
     const decodedTag = decodeURIComponent(tag);
 
     // Normalize both `\` and `/` to check for path traversal.
