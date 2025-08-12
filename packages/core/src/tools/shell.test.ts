@@ -309,9 +309,10 @@ describe('ShellTool', () => {
 
         mockShellOutputCallback({
           type: 'data',
-          chunk: 'world',
+          chunk: 'hello world',
         });
 
+        // It should have been called once now with the combined output.
         expect(updateOutputMock).toHaveBeenCalledOnce();
         expect(updateOutputMock).toHaveBeenCalledWith('hello world');
 

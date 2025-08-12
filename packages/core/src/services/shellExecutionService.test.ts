@@ -161,14 +161,24 @@ describe('ShellExecutionService', () => {
       expect(result.signal).toBe(15);
     });
 
-    it('handles errors that do not fire the exit event', async () => {
-      const error = new Error('spawn abc ENOENT');
-      const { result } = await simulateExecution('touch cat.jpg', (cp) => {
-        cp.emit('error', error); // No exit event is fired.
+    it('should handle a synchronous spawn error', async () => {
+      const spawnError = new Error('spawn ENOENT');
+      mockPtySpawn.mockImplementation(() => {
+        throw spawnError;
       });
 
-      expect(result.error).toBe(error);
+      const handle = ShellExecutionService.execute(
+        'any-command',
+        '/test/dir',
+        onOutputEventMock,
+        new AbortController().signal,
+      );
+      const result = await handle.result;
+
+      expect(result.error).toBe(spawnError);
       expect(result.exitCode).toBe(1);
+      expect(result.output).toBe('');
+      expect(handle.pid).toBeUndefined();
     });
   });
 

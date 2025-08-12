@@ -12,6 +12,17 @@ import { isBinary } from '../utils/textUtils.js';
 import pkg from '@xterm/headless';
 const { Terminal } = pkg;
 
+// @ts-expect-error getFullText is not a public API.
+const getFullText = (terminal: Terminal) => {
+  const buffer = terminal.buffer.active;
+  const lines: string[] = [];
+  for (let i = 0; i < buffer.length; i++) {
+    const line = buffer.getLine(i);
+    lines.push(line ? line.translateToString(true) : '');
+  }
+  return lines.join('\n').trim();
+};
+
 /** A structured result from a shell command execution. */
 export interface ShellExecutionResult {
   /** The raw, unprocessed output buffer. */
@@ -89,17 +100,34 @@ export class ShellExecutionService {
       ? ['/c', commandToExecute]
       : ['-c', commandToExecute];
 
-    const ptyProcess = pty.spawn(shell, args, {
-      cwd,
-      name: 'xterm-color',
-      cols: terminalColumns ?? 200,
-      rows: terminalRows ?? 20,
-      env: {
-        ...process.env,
-        GEMINI_CLI: '1',
-      },
-      handleFlowControl: true,
-    });
+    let ptyProcess;
+    try {
+      ptyProcess = pty.spawn(shell, args, {
+        cwd,
+        name: 'xterm-color',
+        cols: terminalColumns ?? 200,
+        rows: terminalRows ?? 20,
+        env: {
+          ...process.env,
+          GEMINI_CLI: '1',
+        },
+        handleFlowControl: true,
+      });
+    } catch (e) {
+      const error = e as Error;
+      return {
+        pid: undefined,
+        result: Promise.resolve({
+          rawOutput: Buffer.from(''),
+          output: '',
+          exitCode: 1,
+          signal: null,
+          error,
+          aborted: false,
+          pid: undefined,
+        }),
+      };
+    }
 
     const result = new Promise<ShellExecutionResult>((resolve) => {
       const headlessTerminal = new Terminal({
@@ -108,8 +136,6 @@ export class ShellExecutionService {
         rows: terminalRows ?? 20,
       });
       let processingChain = Promise.resolve();
-      const writePromises: Array<Promise<void>> = [];
-      let previousStrippedOutput = '';
       let decoder: TextDecoder | null = null;
       let output = '';
       const outputChunks: Buffer[] = [];
@@ -119,17 +145,6 @@ export class ShellExecutionService {
       let isStreamingRawContent = true;
       const MAX_SNIFF_SIZE = 4096;
       let sniffedBytes = 0;
-
-      // @ts-expect-error getFullText is not a public API.
-      const getFullText = (terminal: Terminal) => {
-        const buffer = terminal.buffer.active;
-        const lines: string[] = [];
-        for (let i = 0; i < buffer.length; i++) {
-          const line = buffer.getLine(i);
-          lines.push(line ? line.translateToString(true) : '');
-        }
-        return lines.join('\n').trim();
-      };
 
       const handleOutput = (data: Buffer) => {
         processingChain = processingChain.then(
@@ -162,12 +177,8 @@ export class ShellExecutionService {
                 const decodedChunk = decoder.decode(data, { stream: true });
                 headlessTerminal.write(decodedChunk, () => {
                   const newStrippedOutput = getFullText(headlessTerminal);
-                  const strippedChunk = newStrippedOutput.substring(
-                    previousStrippedOutput.length,
-                  );
-                  previousStrippedOutput = newStrippedOutput;
                   output = newStrippedOutput;
-                  onOutputEvent({ type: 'data', chunk: strippedChunk });
+                  onOutputEvent({ type: 'data', chunk: newStrippedOutput });
                   resolve();
                 });
               } else {
@@ -184,7 +195,6 @@ export class ShellExecutionService {
               }
             }),
         );
-        writePromises.push(processingChain);
       };
 
       ptyProcess.onData((data) => {
