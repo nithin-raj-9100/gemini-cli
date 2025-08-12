@@ -84,7 +84,7 @@ import { BuiltinCommandLoader } from '../../services/BuiltinCommandLoader.js';
 import { FileCommandLoader } from '../../services/FileCommandLoader.js';
 import { McpPromptLoader } from '../../services/McpPromptLoader.js';
 import { SlashCommandStatus } from '@google/gemini-cli-core/index.js';
-import { makeFakeConfig } from '@google/gemini-cli-core/dist/src/test-utils/config.js';
+import { makeFakeConfig } from '@google/gemini-cli-core/index.js';
 
 function createTestCommand(
   overrides: Partial<SlashCommand>,
