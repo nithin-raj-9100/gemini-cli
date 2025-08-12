@@ -1621,7 +1621,7 @@ ${JSON.stringify(
         },
       ];
 
-      client.setHistory(historyWithThoughts, true);
+      client.setHistory(historyWithThoughts, { stripThoughts: true });
 
       const expectedHistory: Content[] = [
         {
@@ -1660,7 +1660,7 @@ ${JSON.stringify(
         },
       ];
 
-      client.setHistory(historyWithThoughts, false);
+      client.setHistory(historyWithThoughts, { stripThoughts: false });
 
       expect(mockChat.setHistory).toHaveBeenCalledWith(historyWithThoughts);
     });

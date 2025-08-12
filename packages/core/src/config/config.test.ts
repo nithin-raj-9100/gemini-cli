@@ -250,7 +250,7 @@ describe('Server Config (config.ts)', () => {
       // Verify that history was restored to the new client
       expect(mockNewClient.setHistory).toHaveBeenCalledWith(
         mockExistingHistory,
-        false,
+        { stripThoughts: false },
       );
     });
 
@@ -324,7 +324,7 @@ describe('Server Config (config.ts)', () => {
 
       expect(mockNewClient.setHistory).toHaveBeenCalledWith(
         mockExistingHistory,
-        true,
+        { stripThoughts: true },
       );
     });
 
@@ -367,7 +367,7 @@ describe('Server Config (config.ts)', () => {
 
       expect(mockNewClient.setHistory).toHaveBeenCalledWith(
         mockExistingHistory,
-        false,
+        { stripThoughts: false },
       );
     });
   });

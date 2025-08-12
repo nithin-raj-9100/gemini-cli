@@ -164,7 +164,10 @@ export class GeminiClient {
     return this.getChat().getHistory();
   }
 
-  setHistory(history: Content[], stripThoughts = false) {
+  setHistory(
+    history: Content[],
+    { stripThoughts = false }: { stripThoughts?: boolean } = {},
+  ) {
     const historyToSet = stripThoughts
       ? history.map((content) => {
           const newContent = { ...content };
