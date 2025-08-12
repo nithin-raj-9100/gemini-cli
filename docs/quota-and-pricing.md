@@ -57,7 +57,7 @@ If you use up your initial number of requests, you can upgrade your plan to cont
       - 2000 model requests / user / day
       - 120 model requests / user / minute
 
-Learn more at [Gemini Code Assist Standard and Enterprise licence Limits](https://developers.google.com/gemini-code-assist/resources/quotas#quotas-for-agent-mode-gemini-cli).
+Learn more at [Gemini Code Assist Standard and Enterprise license Limits](https://developers.google.com/gemini-code-assist/resources/quotas#quotas-for-agent-mode-gemini-cli).
 
 
 ## Pay As You Go
