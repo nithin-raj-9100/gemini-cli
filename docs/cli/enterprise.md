@@ -73,15 +73,14 @@ To create a secure, centrally-managed catalog of tools, the system administrator
 
 **Example of a Secure System `settings.json`:**
 
+1. Add the _names_ of all approved servers to an allowlist.
+   This is ESSENTIAL to prevent users from adding their own servers.
+
+2. Provide the canonical _definition_ for each server on the allowlist.
+
 ```json
 {
-  "//": "System-wide settings for Gemini CLI. Managed by IT.",
-
-  "//": "1. Add the *names* of all approved servers to an allowlist.",
-  "//": "This is ESSENTIAL to prevent users from adding their own servers.",
   "allowMCPServers": ["corp-data-api", "source-code-analyzer"],
-
-  "//": "2. Provide the canonical *definition* for each server on the allowlist.",
   "mcpServers": {
     "corp-data-api": {
       "command": "/usr/local/bin/start-corp-api.sh",
@@ -102,15 +101,16 @@ A critical security vulnerability is created if the administrator defines the `m
 
 **Example of an INSECURE System `settings.json`:**
 
+INSECURE: This configuration defines servers but does not enforce the allowlist.
+The administrator has NOT included the "allowMCPServers" setting.
+
 ```json
 {
-  "//": "INSECURE: This configuration defines servers but does not enforce the allowlist.",
   "mcpServers": {
     "corp-data-api": {
       "command": "/usr/local/bin/start-corp-api.sh"
     }
   }
-  // The administrator has NOT included the "allowMCPServers" setting.
 }
 ```
 
@@ -178,8 +178,6 @@ Here is an example of a system `settings.json` file that combines several of the
 
 ```json
 {
-  "//": "System-wide settings for Gemini CLI. Managed by IT.",
-
   "sandbox": "docker",
 
   "coreTools": [
