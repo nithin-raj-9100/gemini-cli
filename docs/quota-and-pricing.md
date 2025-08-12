@@ -37,7 +37,7 @@ Learn more at [Gemini API Rate Limits](https://ai.google.dev/gemini-api/docs/rat
 
 ### Log in with Vertex AI (Express Mode)
 
-Vertex AI offers an Express Mode without the need to enabling billing. This includes:
+Vertex AI offers an Express Mode without the need to enable billing. This includes:
 
   - 90 days before you need to enable billing.
   - Quotas and models are variable and specific to your account.
