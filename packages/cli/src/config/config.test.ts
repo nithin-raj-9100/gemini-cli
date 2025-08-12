@@ -13,6 +13,11 @@ import { loadCliConfig, parseArguments } from './config.js';
 import { Settings } from './settings.js';
 import { Extension } from './extension.js';
 import * as ServerConfig from '@google/gemini-cli-core';
+import { isCurrentDirectoryTrusted } from './trustedFolders.js';
+
+vi.mock('./trustedFolders.js', () => ({
+  isCurrentDirectoryTrusted: vi.fn(),
+}));
 
 vi.mock('os', async (importOriginal) => {
   const actualOs = await importOriginal<typeof os>();
@@ -1352,5 +1357,49 @@ describe('loadCliConfig interactive', () => {
     const argv = await parseArguments();
     const config = await loadCliConfig({}, [], 'test-session', argv);
     expect(config.isInteractive()).toBe(false);
+  });
+});
+
+describe('loadCliConfig trustedFolder', () => {
+  const originalArgv = process.argv;
+  const originalEnv = { ...process.env };
+
+  beforeEach(() => {
+    vi.resetAllMocks();
+    vi.mocked(os.homedir).mockReturnValue('/mock/home/user');
+    process.env.GEMINI_API_KEY = 'test-api-key';
+  });
+
+  afterEach(() => {
+    process.argv = originalArgv;
+    process.env = originalEnv;
+    vi.restoreAllMocks();
+  });
+
+  it('should set trustedFolder to true when isCurrentDirectoryTrusted returns true', async () => {
+    (isCurrentDirectoryTrusted as vi.Mock).mockReturnValue(true);
+    process.argv = ['node', 'script.js'];
+    const argv = await parseArguments();
+    const settings: Settings = {};
+    const config = await loadCliConfig(settings, [], 'test-session', argv);
+    expect(config.isTrustedFolder()).toBe(true);
+  });
+
+  it('should set trustedFolder to false when isCurrentDirectoryTrusted returns false', async () => {
+    (isCurrentDirectoryTrusted as vi.Mock).mockReturnValue(false);
+    process.argv = ['node', 'script.js'];
+    const argv = await parseArguments();
+    const settings: Settings = {};
+    const config = await loadCliConfig(settings, [], 'test-session', argv);
+    expect(config.isTrustedFolder()).toBe(false);
+  });
+
+  it('should set trustedFolder to undefined when isCurrentDirectoryTrusted returns undefined', async () => {
+    (isCurrentDirectoryTrusted as vi.Mock).mockReturnValue(undefined);
+    process.argv = ['node', 'script.js'];
+    const argv = await parseArguments();
+    const settings: Settings = {};
+    const config = await loadCliConfig(settings, [], 'test-session', argv);
+    expect(config.isTrustedFolder()).toBeUndefined();
   });
 });
