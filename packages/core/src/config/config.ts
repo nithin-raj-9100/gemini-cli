@@ -151,6 +151,8 @@ export type FlashFallbackHandler = (
 
 export interface ConfigParameters {
   sessionId: string;
+  cliVersion?: string;
+  gitCommitHash?: string;
   embeddingModel?: string;
   sandbox?: SandboxConfig;
   targetDir: string;
@@ -204,6 +206,8 @@ export class Config {
   private toolRegistry!: ToolRegistry;
   private promptRegistry!: PromptRegistry;
   private readonly sessionId: string;
+  private readonly cliVersion: string;
+  private readonly gitCommitHash: string;
   private contentGeneratorConfig!: ContentGeneratorConfig;
   private readonly embeddingModel: string;
   private readonly sandbox: SandboxConfig | undefined;
@@ -266,6 +270,8 @@ export class Config {
 
   constructor(params: ConfigParameters) {
     this.sessionId = params.sessionId;
+    this.cliVersion = params.cliVersion ?? 'UNKNOWN';
+    this.gitCommitHash = params.gitCommitHash ?? 'UNKNOWN';
     this.embeddingModel =
       params.embeddingModel ?? DEFAULT_GEMINI_EMBEDDING_MODEL;
     this.sandbox = params.sandbox;
@@ -397,6 +403,14 @@ export class Config {
 
   getSessionId(): string {
     return this.sessionId;
+  }
+
+  getCliVersion(): string {
+    return this.cliVersion;
+  }
+
+  getGitCommitHash(): string {
+    return this.gitCommitHash;
   }
 
   shouldLoadMemoryFromIncludeDirectories(): boolean {

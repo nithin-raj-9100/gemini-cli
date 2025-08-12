@@ -95,6 +95,8 @@ describe('CoreToolScheduler', () => {
 
     const mockConfig = {
       getSessionId: () => 'test-session-id',
+      getCliVersion: () => '0.0.0.1',
+      getGitCommitHash: () => 'a1b2',
       getUsageStatisticsEnabled: () => true,
       getDebugMode: () => false,
       getApprovalMode: () => ApprovalMode.DEFAULT,
@@ -166,6 +168,8 @@ describe('CoreToolScheduler with payload', () => {
 
     const mockConfig = {
       getSessionId: () => 'test-session-id',
+      getCliVersion: () => '0.0.0.1',
+      getGitCommitHash: () => 'a1b2',
       getUsageStatisticsEnabled: () => true,
       getDebugMode: () => false,
       getApprovalMode: () => ApprovalMode.DEFAULT,
@@ -443,6 +447,8 @@ describe('CoreToolScheduler edit cancellation', () => {
 
     const mockConfig = {
       getSessionId: () => 'test-session-id',
+      getCliVersion: () => '0.0.0.1',
+      getGitCommitHash: () => 'a1b2',
       getUsageStatisticsEnabled: () => true,
       getDebugMode: () => false,
       getApprovalMode: () => ApprovalMode.DEFAULT,
@@ -538,6 +544,8 @@ describe('CoreToolScheduler YOLO mode', () => {
     // Configure the scheduler for YOLO mode.
     const mockConfig = {
       getSessionId: () => 'test-session-id',
+      getCliVersion: () => '0.0.0.1',
+      getGitCommitHash: () => 'a1b2',
       getUsageStatisticsEnabled: () => true,
       getDebugMode: () => false,
       getApprovalMode: () => ApprovalMode.YOLO,
@@ -623,6 +631,8 @@ describe('CoreToolScheduler request queueing', () => {
 
     const mockConfig = {
       getSessionId: () => 'test-session-id',
+      getCliVersion: () => '0.0.0.1',
+      getGitCommitHash: () => 'a1b2',
       getUsageStatisticsEnabled: () => true,
       getDebugMode: () => false,
       getApprovalMode: () => ApprovalMode.YOLO, // Use YOLO to avoid confirmation prompts
@@ -732,6 +742,8 @@ describe('CoreToolScheduler request queueing', () => {
 
     const mockConfig = {
       getSessionId: () => 'test-session-id',
+      getCliVersion: () => '0.0.0.1',
+      getGitCommitHash: () => 'a1b2',
       getUsageStatisticsEnabled: () => true,
       getDebugMode: () => false,
       getApprovalMode: () => ApprovalMode.YOLO,

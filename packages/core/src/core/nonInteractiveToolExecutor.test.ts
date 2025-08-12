@@ -17,6 +17,8 @@ import { MockTool } from '../test-utils/tools.js';
 
 const mockConfig = {
   getSessionId: () => 'test-session-id',
+  getCliVersion: () => '0.0.0.1',
+  getGitCommitHash: () => 'a1b2',
   getUsageStatisticsEnabled: () => true,
   getDebugMode: () => false,
 } as unknown as Config;

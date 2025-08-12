@@ -315,6 +315,12 @@ describe('useGeminiStream', () => {
       getSessionId() {
         return 'test-session-id';
       },
+      getCliVersion() {
+        return '0.0.0.1';
+      },
+      getGitCommitHash() {
+        return 'a1b2';
+      },
       setQuotaErrorOccurred: vi.fn(),
       getQuotaErrorOccurred: vi.fn(() => false),
       getModel: vi.fn(() => 'gemini-2.5-pro'),

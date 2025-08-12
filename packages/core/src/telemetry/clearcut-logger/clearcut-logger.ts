@@ -162,6 +162,14 @@ export class ClearcutLogger {
         gemini_cli_key: EventMetadataKey.GEMINI_CLI_SURFACE,
         value: surface,
       },
+      {
+        gemini_cli_key: EventMetadataKey.GEMINI_CLI_VERSION,
+        value: this.config?.getCliVersion() ?? 'UNKNOWN',
+      },
+      {
+        gemini_cli_key: EventMetadataKey.GEMINI_CLI_GIT_COMMIT_HASH,
+        value: this.config?.getGitCommitHash() ?? 'UNKNOWN',
+      },
     ];
     data.push(...defaultLogMetadata);
   }

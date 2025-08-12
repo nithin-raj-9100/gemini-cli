@@ -34,6 +34,7 @@ import { Extension, annotateActiveExtensions } from './extension.js';
 import { getCliVersion } from '../utils/version.js';
 import { loadSandboxConfig } from './sandboxConfig.js';
 import { resolvePath } from '../utils/resolvePath.js';
+import { GIT_COMMIT_INFO } from '../generated/git-commit.js';
 
 // Simple console logger for now - replace with actual logger if available
 const logger = {
@@ -411,6 +412,8 @@ export async function loadCliConfig(
 
   return new Config({
     sessionId,
+    cliVersion: await getCliVersion(),
+    gitCommitHash: GIT_COMMIT_INFO,
     embeddingModel: DEFAULT_GEMINI_EMBEDDING_MODEL,
     sandbox: sandboxConfig,
     targetDir: process.cwd(),

@@ -53,6 +53,8 @@ const mockConfig = {
   getApprovalMode: vi.fn(() => ApprovalMode.DEFAULT),
   getUsageStatisticsEnabled: () => true,
   getDebugMode: () => false,
+  getCliVersion: () => '0.0.0.1',
+  getGitCommitHash: () => 'a1b2',
 };
 
 class MockTool extends BaseTool<object, ToolResult> {

@@ -191,6 +191,8 @@ describe('Gemini Client (client.ts)', () => {
       getUserMemory: vi.fn().mockReturnValue(''),
       getFullContext: vi.fn().mockReturnValue(false),
       getSessionId: vi.fn().mockReturnValue('test-session-id'),
+      getCliVersion: vi.fn().mockReturnValue('0.0.0.1'),
+      getGitCommitHash: vi.fn().mockReturnValue('a1b2'),
       getProxy: vi.fn().mockReturnValue(undefined),
       getWorkingDir: vi.fn().mockReturnValue('/test/dir'),
       getFileService: vi.fn().mockReturnValue(fileService),
