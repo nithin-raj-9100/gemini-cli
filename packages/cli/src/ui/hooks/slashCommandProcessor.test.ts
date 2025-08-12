@@ -4,18 +4,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-const { logSlashCommand, SlashCommandEvent } = vi.hoisted(() => ({
+const { logSlashCommand } = vi.hoisted(() => ({
   logSlashCommand: vi.fn(),
-  SlashCommandEvent: vi.fn((command, subCommand) => ({ command, subCommand })),
 }));
 
 vi.mock('@google/gemini-cli-core', async (importOriginal) => {
   const original =
     await importOriginal<typeof import('@google/gemini-cli-core')>();
+
   return {
     ...original,
     logSlashCommand,
-    SlashCommandEvent,
     getIdeInstaller: vi.fn().mockReturnValue(null),
   };
 });
@@ -909,7 +908,6 @@ describe('useSlashCommandProcessor', () => {
     beforeEach(() => {
       mockCommandAction.mockClear();
       vi.mocked(logSlashCommand).mockClear();
-      vi.mocked(SlashCommandEvent).mockClear();
     });
 
     it('should log a simple slash command', async () => {
