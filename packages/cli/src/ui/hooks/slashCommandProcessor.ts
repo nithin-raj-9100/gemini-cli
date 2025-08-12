@@ -249,7 +249,7 @@ export const useSlashCommandProcessor = (
       let currentCommands = commands;
       let commandToExecute: SlashCommand | undefined;
       let pathIndex = 0;
-      let error: Error;
+      let error: Error | undefined;
       const canonicalPath: string[] = [];
 
       for (const part of commandPath) {
@@ -490,7 +490,7 @@ export const useSlashCommandProcessor = (
 
         return { type: 'handled' };
       } catch (e: unknown) {
-        error = e;
+        error = e as Error;
         if (config) {
           const event = makeSlashCommandEvent({
             command: resolvedCommandPath[0],
