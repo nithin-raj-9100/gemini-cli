@@ -14,7 +14,6 @@ import {
   GitService,
   Logger,
   logSlashCommand,
-  SlashCommandEvent,
   makeSlashCommandEvent,
   SlashCommandStatus,
   ToolConfirmationOutcome,
@@ -30,7 +29,6 @@ import {
 } from '../types.js';
 import { LoadedSettings } from '../../config/settings.js';
 import {
-  SlashCommandActionReturn,
   type CommandContext,
   type SlashCommand,
 } from '../commands/types.js';
