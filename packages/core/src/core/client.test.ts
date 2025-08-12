@@ -1613,7 +1613,10 @@ ${JSON.stringify(
           role: 'model',
           parts: [
             { text: 'thinking...', thoughtSignature: 'thought-123' },
-            { text: 'ok', thoughtSignature: 'thought-456' },
+            {
+              functionCall: { name: 'test', args: {} },
+              thoughtSignature: 'thought-456',
+            },
           ],
         },
       ];
@@ -1628,8 +1631,8 @@ ${JSON.stringify(
         {
           role: 'model',
           parts: [
-            { text: 'thinking...', thoughtSignature: undefined },
-            { text: 'ok', thoughtSignature: undefined },
+            { text: 'thinking...' },
+            { functionCall: { name: 'test', args: {} } },
           ],
         },
       ];

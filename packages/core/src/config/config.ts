@@ -375,6 +375,8 @@ export class Config {
     const newGeminiClient = new GeminiClient(this);
     await newGeminiClient.initialize(newContentGeneratorConfig);
 
+    // Vertex and Genai have incompatible encryption and sending history with
+    // throughtSignature from Genai to Vertex will fail, we need to strip them
     const fromGenaiToVertex =
       this.contentGeneratorConfig?.authType === AuthType.USE_GEMINI &&
       authMethod === AuthType.LOGIN_WITH_GOOGLE;
