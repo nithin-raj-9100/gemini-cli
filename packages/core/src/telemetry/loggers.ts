@@ -341,7 +341,6 @@ export function logSlashCommand(
   config: Config,
   event: SlashCommandEvent,
 ): void {
-  console.log('slash command', event);
   ClearcutLogger.getInstance(config)?.logSlashCommandEvent(event);
   if (!isTelemetrySdkInitialized()) return;
 
