@@ -375,13 +375,17 @@ export class Config {
     const newGeminiClient = new GeminiClient(this);
     await newGeminiClient.initialize(newContentGeneratorConfig);
 
+    const fromGenaiToVertex =
+      this.contentGeneratorConfig?.authType === AuthType.USE_GEMINI &&
+      authMethod === AuthType.LOGIN_WITH_GOOGLE;
+
     // Only assign to instance properties after successful initialization
     this.contentGeneratorConfig = newContentGeneratorConfig;
     this.geminiClient = newGeminiClient;
 
     // Restore the conversation history to the new client
     if (existingHistory.length > 0) {
-      this.geminiClient.setHistory(existingHistory);
+      this.geminiClient.setHistory(existingHistory, fromGenaiToVertex);
     }
 
     // Reset the session flag since we're explicitly changing auth and using default model

@@ -164,7 +164,13 @@ export class GeminiClient {
     return this.getChat().getHistory();
   }
 
-  setHistory(history: Content[]) {
+  setHistory(history: Content[], stripThoughts = false) {
+    stripThoughts &&
+      history.forEach((content) => {
+        content.parts?.forEach((part) => {
+          part.thoughtSignature = undefined;
+        });
+      });
     this.getChat().setHistory(history);
     this.forceFullIdeContext = true;
   }
