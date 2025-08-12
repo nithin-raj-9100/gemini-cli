@@ -47,7 +47,7 @@ Learn more at [Vertex AI Express Mode Limits](https://cloud.google.com/vertex-ai
 
 ## Paid tier: Higher limits for a fixed cost
 
-If you use up your initial number of requests, you can upgrade your plan to continue to benefit from Gemini CLI by using the [Standard or Enterprise editions of Gemini Code Assist](https://cloud.google.com/products/gemini/pricing). Quotas and pricing are based on a fixed price subscription with assigned license seats. You can do by logging in with Google.  For a fixed price where your costs are predictable, you can choose to log in with Google, and use the . This includes:
+If you use up your initial number of requests, you can upgrade your plan to continue to benefit from Gemini CLI by using the [Standard or Enterprise editions of Gemini Code Assist](https://cloud.google.com/products/gemini/pricing). Quotas and pricing are based on a fixed price subscription with assigned license seats. For predictable costs, you can log in with Google. This includes:
 
   - Model requests will be made across both Pro and Flash models as determined by Gemini CLI to preserve shared experience quality. Specific quota for different models is not specified.
   - Standard:
