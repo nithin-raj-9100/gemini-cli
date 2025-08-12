@@ -28,10 +28,7 @@ import {
   SlashCommandProcessorResult,
 } from '../types.js';
 import { LoadedSettings } from '../../config/settings.js';
-import {
-  type CommandContext,
-  type SlashCommand,
-} from '../commands/types.js';
+import { type CommandContext, type SlashCommand } from '../commands/types.js';
 import { CommandService } from '../../services/CommandService.js';
 import { BuiltinCommandLoader } from '../../services/BuiltinCommandLoader.js';
 import { FileCommandLoader } from '../../services/FileCommandLoader.js';
