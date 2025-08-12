@@ -1,6 +1,6 @@
 # Gemini CLI: Quotas and Pricing
 
-Gemini CLI offers a very generous free tier that covers the use cases for many individual developers. For enterprise / professional usage, or if you need higher limits, there are multiple possible avenues depending on what type of account you use to authenticate. Additionally, both quotas and pricing may be calculated differently based on the model version, requests, and tokens used. A summary of model usage is available through the `/stats` command and presented on exit at the end of a session. See [privacy and terms](./tos-privacy.md) for details on Privacy policy and Terms of Service. Note: published prices are list price; additional negotiated commercial discounting may apply.
+Gemini CLI offers a generous free tier that covers the use cases for many individual developers. For enterprise / professional usage, or if you need higher limits, there are multiple possible avenues depending on what type of account you use to authenticate. Additionally, both quotas and pricing may be calculated differently based on the model version, requests, and tokens used. A summary of model usage is available through the `/stats` command and presented on exit at the end of a session. See [privacy and terms](./tos-privacy.md) for details on Privacy policy and Terms of Service. Note: published prices are list price; additional negotiated commercial discounting may apply.
 
 This article outlines the specific quotas and pricing applicable to the Gemini CLI when using different authentication methods.
 
@@ -44,7 +44,6 @@ Vertex AI offers an Express Mode without the need to enable billing. This includ
 
 Learn more at [Vertex AI Express Mode Limits](https://cloud.google.com/vertex-ai/generative-ai/docs/start/express-mode/overview#quotas).
 
-
 ## Paid tier: Higher limits for a fixed cost
 
 If you use up your initial number of requests, you can upgrade your plan to continue to benefit from Gemini CLI by using the [Standard or Enterprise editions of Gemini Code Assist](https://cloud.google.com/products/gemini/pricing). Quotas and pricing are based on a fixed price subscription with assigned license seats. For predictable costs, you can log in with Google. This includes:
@@ -58,7 +57,6 @@ If you use up your initial number of requests, you can upgrade your plan to cont
       - 120 model requests / user / minute
 
 Learn more at [Gemini Code Assist Standard and Enterprise license Limits](https://developers.google.com/gemini-code-assist/resources/quotas#quotas-for-agent-mode-gemini-cli).
-
 
 ## Pay As You Go
 
