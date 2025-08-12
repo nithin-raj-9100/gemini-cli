@@ -165,13 +165,16 @@ export class GeminiClient {
   }
 
   setHistory(history: Content[], stripThoughts = false) {
-    stripThoughts &&
-      history.forEach((content) => {
-        content.parts?.forEach((part) => {
-          part.thoughtSignature = undefined;
-        });
-      });
-    this.getChat().setHistory(history);
+    const historyToSet = stripThoughts
+      ? history.map((content) => ({
+          ...content,
+          parts: content.parts?.map((part) => ({
+            ...part,
+            thoughtSignature: undefined,
+          })),
+        }))
+      : history;
+    this.getChat().setHistory(historyToSet);
     this.forceFullIdeContext = true;
   }
 
