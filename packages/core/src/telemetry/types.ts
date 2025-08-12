@@ -16,14 +16,15 @@ import {
 
 interface BaseTelemetryEvent {
   'event.name': string;
-  'event.timestamp': string; // ISO
+  /** Current timestamp in ISO 8601 format */
+  'event.timestamp': string;
 }
 
 type CommonFields = keyof BaseTelemetryEvent;
 
 export class StartSessionEvent implements BaseTelemetryEvent {
   'event.name': 'cli_config';
-  'event.timestamp': string; // ISO 8601
+  'event.timestamp': string;
   model: string;
   embedding_model: string;
   sandbox_enabled: boolean;
@@ -69,7 +70,7 @@ export class StartSessionEvent implements BaseTelemetryEvent {
 
 export class EndSessionEvent implements BaseTelemetryEvent {
   'event.name': 'end_session';
-  'event.timestamp': string; // ISO 8601
+  'event.timestamp': string;
   session_id?: string;
 
   constructor(config?: Config) {
@@ -81,7 +82,7 @@ export class EndSessionEvent implements BaseTelemetryEvent {
 
 export class UserPromptEvent implements BaseTelemetryEvent {
   'event.name': 'user_prompt';
-  'event.timestamp': string; // ISO 8601
+  'event.timestamp': string;
   prompt_length: number;
   prompt_id: string;
   auth_type?: string;
@@ -104,7 +105,7 @@ export class UserPromptEvent implements BaseTelemetryEvent {
 
 export class ToolCallEvent implements BaseTelemetryEvent {
   'event.name': 'tool_call';
-  'event.timestamp': string; // ISO 8601
+  'event.timestamp': string;
   function_name: string;
   function_args: Record<string, unknown>;
   duration_ms: number;
@@ -151,7 +152,7 @@ export class ToolCallEvent implements BaseTelemetryEvent {
 
 export class ApiRequestEvent implements BaseTelemetryEvent {
   'event.name': 'api_request';
-  'event.timestamp': string; // ISO 8601
+  'event.timestamp': string;
   model: string;
   prompt_id: string;
   request_text?: string;
@@ -167,7 +168,7 @@ export class ApiRequestEvent implements BaseTelemetryEvent {
 
 export class ApiErrorEvent implements BaseTelemetryEvent {
   'event.name': 'api_error';
-  'event.timestamp': string; // ISO 8601
+  'event.timestamp': string;
   model: string;
   error: string;
   error_type?: string;
@@ -199,7 +200,7 @@ export class ApiErrorEvent implements BaseTelemetryEvent {
 
 export class ApiResponseEvent implements BaseTelemetryEvent {
   'event.name': 'api_response';
-  'event.timestamp': string; // ISO 8601
+  'event.timestamp': string;
   model: string;
   status_code?: number | string;
   duration_ms: number;
@@ -243,7 +244,7 @@ export class ApiResponseEvent implements BaseTelemetryEvent {
 
 export class FlashFallbackEvent implements BaseTelemetryEvent {
   'event.name': 'flash_fallback';
-  'event.timestamp': string; // ISO 8601
+  'event.timestamp': string;
   auth_type: string;
 
   constructor(auth_type: string) {
@@ -261,7 +262,7 @@ export enum LoopType {
 
 export class LoopDetectedEvent implements BaseTelemetryEvent {
   'event.name': 'loop_detected';
-  'event.timestamp': string; // ISO 8601
+  'event.timestamp': string;
   loop_type: LoopType;
   prompt_id: string;
 
@@ -275,7 +276,7 @@ export class LoopDetectedEvent implements BaseTelemetryEvent {
 
 export class NextSpeakerCheckEvent implements BaseTelemetryEvent {
   'event.name': 'next_speaker_check';
-  'event.timestamp': string; // ISO 8601
+  'event.timestamp': string;
   prompt_id: string;
   finish_reason: string;
   result: string;
@@ -318,7 +319,7 @@ export enum SlashCommandStatus {
 
 export class MalformedJsonResponseEvent implements BaseTelemetryEvent {
   'event.name': 'malformed_json_response';
-  'event.timestamp': string; // ISO 8601
+  'event.timestamp': string;
   model: string;
 
   constructor(model: string) {
@@ -335,7 +336,7 @@ export enum IdeConnectionType {
 
 export class IdeConnectionEvent {
   'event.name': 'ide_connection';
-  'event.timestamp': string; // ISO 8601
+  'event.timestamp': string;
   connection_type: IdeConnectionType;
 
   constructor(connection_type: IdeConnectionType) {
