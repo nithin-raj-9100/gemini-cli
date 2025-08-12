@@ -60,21 +60,21 @@ Gemini CLI loads `settings.json` files from three levels: System, Workspace, and
 
 This means a user **cannot** override the definition of a server that is already defined in the system-level settings. However, they **can** add new servers with unique names.
 
-### Enforcing a Secure Catalog of Tools
+### Enforcing a Catalog of Tools
 
 The security of your MCP tool ecosystem depends on a combination of defining the canonical servers and adding their names to an allowlist.
 
-#### The Secure Pattern: Define and Add to Allowlist in System Settings
+#### More Secure Pattern: Define and Add to Allowlist in System Settings
 
 To create a secure, centrally-managed catalog of tools, the system administrator **must** do both of the following in the system-level `settings.json` file:
 
 1.  **Define the full configuration** for every approved server in the `mcpServers` object. This ensures that even if a user defines a server with the same name, the secure system-level definition will take precedence.
 2.  **Add the names** of those servers to an allowlist using the `allowMCPServers` setting. This is a critical security step that prevents users from running any servers that are not on this list. If this setting is omitted, the CLI will merge and allow any server defined by the user.
 
-**Example of a Secure System `settings.json`:**
+**Example System `settings.json`:**
 
 1. Add the _names_ of all approved servers to an allowlist.
-   This is ESSENTIAL to prevent users from adding their own servers.
+   This will prevent users from adding their own servers.
 
 2. Provide the canonical _definition_ for each server on the allowlist.
 
@@ -93,15 +93,15 @@ To create a secure, centrally-managed catalog of tools, the system administrator
 }
 ```
 
-This pattern is secure because it uses both definition and an allowlist. Any server a user defines will either be overridden by the system definition (if it has the same name) or blocked because its name is not in the `allowMCPServers` list.
+This pattern is more secure because it uses both definition and an allowlist. Any server a user defines will either be overridden by the system definition (if it has the same name) or blocked because its name is not in the `allowMCPServers` list.
 
-### The Insecure Pattern: Omitting the Allowlist
+### Less Secure Pattern: Omitting the Allowlist
 
-A critical security vulnerability is created if the administrator defines the `mcpServers` object but **fails to also specify the `allowMCPServers` allowlist**.
+If the administrator defines the `mcpServers` object but fails to also specify the `allowMCPServers` allowlist, users may add their own servers.
 
-**Example of an INSECURE System `settings.json`:**
+**Example System `settings.json`:**
 
-INSECURE: This configuration defines servers but does not enforce the allowlist.
+This configuration defines servers but does not enforce the allowlist.
 The administrator has NOT included the "allowMCPServers" setting.
 
 ```json
@@ -115,8 +115,6 @@ The administrator has NOT included the "allowMCPServers" setting.
 ```
 
 In this scenario, a user can add their own server in their local `settings.json`. Because there is no `allowMCPServers` list to filter the merged results, the user's server will be added to the list of available tools and allowed to run.
-
-**Conclusion:** To securely manage custom tools, administrators must use the system `settings.json` to both **define the canonical server configurations** and **enforce an allowlist of their names** using `allowMCPServers`. Omitting the allowlist is insecure.
 
 ## Enforcing Sandboxing for Security
 
