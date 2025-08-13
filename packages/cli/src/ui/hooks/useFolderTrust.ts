@@ -13,10 +13,7 @@ import * as process from 'process';
 
 export const useFolderTrust = (settings: LoadedSettings, config: Config) => {
   const [isFolderTrustDialogOpen, setIsFolderTrustDialogOpen] = useState(
-    !!settings.merged.folderTrustFeature &&
-      (settings.merged.folderTrust === undefined ||
-        settings.merged.folderTrust === true) &&
-      config.isTrustedFolder() === undefined,
+    config.isTrustedFolder() === undefined,
   );
 
   const handleFolderTrustSelect = useCallback(
