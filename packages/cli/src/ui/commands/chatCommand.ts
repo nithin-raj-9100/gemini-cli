@@ -41,8 +41,21 @@ const getSavedChatTags = async (
       if (file.startsWith(file_head) && file.endsWith(file_tail)) {
         const filePath = path.join(geminiDir, file);
         const stats = await fsPromises.stat(filePath);
+        const tagName = file.slice(file_head.length, -file_tail.length);
+        let decodedName = tagName;
+        try {
+          const reEncoded = Buffer.from(
+            Buffer.from(tagName, 'base64url').toString('utf8'),
+            'utf8',
+          ).toString('base64url');
+          if (reEncoded === tagName) {
+            decodedName = Buffer.from(tagName, 'base64url').toString('utf8');
+          }
+        } catch (_e) {
+          // It's not a valid base64url string, so we'll just use the raw name
+        }
         chatDetails.push({
-          name: file.slice(file_head.length, -file_tail.length),
+          name: decodedName,
           mtime: stats.mtime,
         });
       }
