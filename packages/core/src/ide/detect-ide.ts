@@ -58,7 +58,7 @@ export function detectIde(): DetectedIde | undefined {
     process.env.TMUX &&
     process.env.TERM_PROGRAM === 'tmux' &&
     (process.env.VSCODE_GIT_ASKPASS_NODE ||
-     process.env.VSCODE_GIT_ASKPASS_MAIN ||
+      process.env.VSCODE_GIT_ASKPASS_MAIN ||
       process.env.VSCODE_GIT_IPC_HANDLE);
   if (!isVsCode && !isVsCodeInTmux) {
     return undefined;
