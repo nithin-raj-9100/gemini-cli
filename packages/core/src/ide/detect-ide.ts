@@ -53,12 +53,11 @@ export function getIdeInfo(ide: DetectedIde): IdeInfo {
 
 export function detectIde(): DetectedIde | undefined {
   // Only VSCode-based integrations are currently supported.
-  if (process.env.TERM_PROGRAM !== 'vscode') {
-    if (process.env.TMUX && process.env.TERM_PROGRAM === 'tmux') {
-      process.env.TERM_PROGRAM = 'vscode';
-    } else {
-      return undefined;
-    }
+  const isVsCode = process.env.TERM_PROGRAM === 'vscode';
+  const isVsCodeInTmux =
+    process.env.TMUX && process.env.TERM_PROGRAM === 'tmux';
+  if (!isVsCode && !isVsCodeInTmux) {
+    return undefined;
   }
   if (process.env.CURSOR_TRACE_ID) {
     return DetectedIde.Cursor;
