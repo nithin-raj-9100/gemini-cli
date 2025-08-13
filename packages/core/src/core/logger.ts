@@ -231,35 +231,46 @@ export class Logger {
     }
   }
 
-  _checkpointPath(tag: string) {
+  private _checkpointPath(tag: string): string {
     if (!tag.length) {
       throw new Error('No checkpoint tag specified.');
     }
     if (!this.geminiDir) {
       throw new Error('Checkpoint file path not set.');
     }
+    // Encode the tag to handle all special characters safely.
+    const encodedTag = Buffer.from(tag).toString('base64url');
+    return path.join(this.geminiDir, `checkpoint-${encodedTag}.json`);
+  }
 
-    let finalTag: string;
+  private async _getCheckpointPath(tag: string): Promise<string> {
+    // 1. Check for the new base64url encoded path first.
+    const newPath = this._checkpointPath(tag);
     try {
-      // Decode the tag to handle URL-encoded characters like %2F, which could
-      // be used to disguise path traversal attempts.
-      const decodedTag = decodeURIComponent(tag);
-      // Normalize both `\` and `/` to check for path traversal.
-      const normalizedTag = decodedTag.replace(/\\/g, '/');
-      // path.basename() will throw on null bytes, which will be caught below.
-      if (path.basename(normalizedTag) !== normalizedTag) {
-        // Unsafe due to path separators. Fall through to catch for sanitization.
-        throw new Error('Path traversal attempt');
+      await fs.access(newPath);
+      return newPath; // Found it, use the new path.
+    } catch (error) {
+      const nodeError = error as NodeJS.ErrnoException;
+      if (nodeError.code !== 'ENOENT') {
+        throw error; // A real error occurred, rethrow it.
       }
-      // Tag is safe, use the decoded version.
-      finalTag = decodedTag || 'default';
-    } catch (_) {
-      // Fallback for malformed URI sequences, path traversal, or other errors.
-      const sanitizedTag = tag.replace(/[^a-zA-Z0-9-_]/g, '');
-      finalTag = sanitizedTag || 'default';
-      console.error('Error when attempting to form tag file name');
+      // It was not found, so we'll check the old path next.
     }
-    return path.join(this.geminiDir, `checkpoint-${finalTag}.json`);
+
+    // 2. Fallback for backward compatibility: check for the old raw path.
+    const oldPath = path.join(this.geminiDir!, `checkpoint-${tag}.json`);
+    try {
+      await fs.access(oldPath);
+      return oldPath; // Found it, use the old path.
+    } catch (error) {
+      const nodeError = error as NodeJS.ErrnoException;
+      if (nodeError.code !== 'ENOENT') {
+        throw error; // A real error occurred, rethrow it.
+      }
+    }
+
+    // 3. If neither path exists, return the new encoded path as the canonical one.
+    return newPath;
   }
 
   async saveCheckpoint(conversation: Content[], tag: string): Promise<void> {
@@ -269,6 +280,7 @@ export class Logger {
       );
       return;
     }
+    // Always save with the new encoded path.
     const path = this._checkpointPath(tag);
     try {
       await fs.writeFile(path, JSON.stringify(conversation, null, 2), 'utf-8');
@@ -285,7 +297,7 @@ export class Logger {
       return [];
     }
 
-    const path = this._checkpointPath(tag);
+    const path = await this._getCheckpointPath(tag);
     try {
       const fileContent = await fs.readFile(path, 'utf-8');
       const parsedContent = JSON.parse(fileContent);
@@ -299,7 +311,7 @@ export class Logger {
     } catch (error) {
       const nodeError = error as NodeJS.ErrnoException;
       if (nodeError.code === 'ENOENT') {
-        // This is okay, it just means the checkpoint doesn't exist.
+        // This is okay, it just means the checkpoint doesn't exist in either format.
         return [];
       }
       console.error(`Failed to read or parse checkpoint file ${path}:`, error);
@@ -315,20 +327,39 @@ export class Logger {
       return false;
     }
 
-    const path = this._checkpointPath(tag);
+    let deletedSomething = false;
 
+    // 1. Attempt to delete the new base64url encoded path.
+    const newPath = this._checkpointPath(tag);
     try {
-      await fs.unlink(path);
-      return true;
+      await fs.unlink(newPath);
+      deletedSomething = true;
     } catch (error) {
       const nodeError = error as NodeJS.ErrnoException;
-      if (nodeError.code === 'ENOENT') {
-        // File doesn't exist, which is fine.
-        return false;
+      if (nodeError.code !== 'ENOENT') {
+        console.error(`Failed to delete checkpoint file ${newPath}:`, error);
+        throw error; // Rethrow unexpected errors
       }
-      console.error(`Failed to delete checkpoint file ${path}:`, error);
-      throw error;
+      // It's okay if it doesn't exist.
     }
+
+    // 2. Attempt to delete the old raw path for backward compatibility.
+    const oldPath = path.join(this.geminiDir!, `checkpoint-${tag}.json`);
+    if (newPath !== oldPath) {
+      try {
+        await fs.unlink(oldPath);
+        deletedSomething = true;
+      } catch (error) {
+        const nodeError = error as NodeJS.ErrnoException;
+        if (nodeError.code !== 'ENOENT') {
+          console.error(`Failed to delete checkpoint file ${oldPath}:`, error);
+          throw error; // Rethrow unexpected errors
+        }
+        // It's okay if it doesn't exist.
+      }
+    }
+
+    return deletedSomething;
   }
 
   async checkpointExists(tag: string): Promise<boolean> {
@@ -337,17 +368,23 @@ export class Logger {
         'Logger not initialized. Cannot check for checkpoint existence.',
       );
     }
-    const filePath = this._checkpointPath(tag);
+    let filePath: string | undefined;
     try {
+      filePath = await this._getCheckpointPath(tag);
+      // We need to check for existence again, because _getCheckpointPath
+      // returns a canonical path even if it doesn't exist yet.
       await fs.access(filePath);
       return true;
     } catch (error) {
       const nodeError = error as NodeJS.ErrnoException;
       if (nodeError.code === 'ENOENT') {
-        return false;
+        return false; // It truly doesn't exist in either format.
       }
+      // A different error occurred.
       console.error(
-        `Failed to check checkpoint existence for ${filePath}:`,
+        `Failed to check checkpoint existence for ${
+          filePath ?? `path for tag "${tag}"`
+        }:`,
         error,
       );
       throw error;

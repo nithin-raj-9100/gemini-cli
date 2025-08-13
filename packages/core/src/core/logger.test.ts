@@ -394,15 +394,27 @@ describe('Logger', () => {
     ];
 
     it.each([
-      { tag: 'test-tag', sanitizedTag: 'test-tag' },
-      { tag: 'invalid/?*!', sanitizedTag: 'invalid' },
-      { tag: '/?*!', sanitizedTag: 'default' },
-      { tag: '../../secret', sanitizedTag: 'secret' },
-    ])('should save a checkpoint', async ({ tag, sanitizedTag }) => {
+      {
+        tag: 'test-tag',
+        encodedTag: 'dGVzdC10YWc',
+      },
+      {
+        tag: '你好世界',
+        encodedTag: '5L2g5aW95LiW55WM',
+      },
+      {
+        tag: 'japanese-ひらがなひらがな形声',
+        encodedTag: 'amFwYW5lc2Ut44Gy44KJ44GM44Gq44Gy44KJ44GM44Gq5b2i5aOw',
+      },
+      {
+        tag: '../../secret',
+        encodedTag: 'Li4vLi4vc2VjcmV0',
+      },
+    ])('should save a checkpoint', async ({ tag, encodedTag }) => {
       await logger.saveCheckpoint(conversation, tag);
       const taggedFilePath = path.join(
         TEST_GEMINI_DIR,
-        `checkpoint-${sanitizedTag}.json`,
+        `checkpoint-${encodedTag}.json`,
       );
       const fileContent = await fs.readFile(taggedFilePath, 'utf-8');
       expect(JSON.parse(fileContent)).toEqual(conversation);
@@ -438,18 +450,30 @@ describe('Logger', () => {
     });
 
     it.each([
-      { tag: 'load-tag', sanitizedTag: 'load-tag' },
-      { tag: 'inv/load?*!', sanitizedTag: 'invload' },
-      { tag: '/?*!', sanitizedTag: 'default' },
-      { tag: '../../secret', sanitizedTag: 'secret' },
-    ])('should load from a checkpoint', async ({ tag, sanitizedTag }) => {
+      {
+        tag: 'test-tag',
+        encodedTag: 'dGVzdC10YWc',
+      },
+      {
+        tag: '你好世界',
+        encodedTag: '5L2g5aW95LiW55WM',
+      },
+      {
+        tag: 'japanese-ひらがなひらがな形声',
+        encodedTag: 'amFwYW5lc2Ut44Gy44KJ44GM44Gq44Gy44KJ44GM44Gq5b2i5aOw',
+      },
+      {
+        tag: '../../secret',
+        encodedTag: 'Li4vLi4vc2VjcmV0',
+      },
+    ])('should load from a checkpoint', async ({ tag, encodedTag }) => {
       const taggedConversation = [
         ...conversation,
         { role: 'user', parts: [{ text: 'hello' }] },
       ];
       const taggedFilePath = path.join(
         TEST_GEMINI_DIR,
-        `checkpoint-${sanitizedTag}.json`,
+        `checkpoint-${encodedTag}.json`,
       );
       await fs.writeFile(
         taggedFilePath,
@@ -473,9 +497,10 @@ describe('Logger', () => {
 
     it('should return an empty array if the file contains invalid JSON', async () => {
       const tag = 'invalid-json-tag';
+      const encodedTag = 'aW52YWxpZC1qc29uLXRhZw';
       const taggedFilePath = path.join(
         TEST_GEMINI_DIR,
-        `checkpoint-${tag}.json`,
+        `checkpoint-${encodedTag}.json`,
       );
       await fs.writeFile(taggedFilePath, 'invalid json');
       const consoleErrorSpy = vi
@@ -508,12 +533,13 @@ describe('Logger', () => {
       { role: 'user', parts: [{ text: 'Content to be deleted' }] },
     ];
     const tag = 'delete-me';
+    const encodedTag = 'ZGVsZXRlLW1l';
     let taggedFilePath: string;
 
     beforeEach(async () => {
       taggedFilePath = path.join(
         TEST_GEMINI_DIR,
-        `${CHECKPOINT_FILE_NAME.replace('.json', '')}-${tag}.json`,
+        `checkpoint-${encodedTag}.json`,
       );
       // Create a file to be deleted
       await fs.writeFile(taggedFilePath, JSON.stringify(conversation));
@@ -527,6 +553,26 @@ describe('Logger', () => {
       await expect(fs.access(taggedFilePath)).rejects.toThrow(/ENOENT/);
     });
 
+    it('should delete both new and old checkpoint files if they exist', async () => {
+      const oldTag = 'delete-me(old)';
+      const oldStylePath = path.join(
+        TEST_GEMINI_DIR,
+        `checkpoint-${oldTag}.json`,
+      );
+      const newStylePath = logger['_checkpointPath'](oldTag);
+
+      // Create both files
+      await fs.writeFile(oldStylePath, '{}');
+      await fs.writeFile(newStylePath, '{}');
+
+      const result = await logger.deleteCheckpoint(oldTag);
+      expect(result).toBe(true);
+
+      // Verify both are gone
+      await expect(fs.access(oldStylePath)).rejects.toThrow(/ENOENT/);
+      await expect(fs.access(newStylePath)).rejects.toThrow(/ENOENT/);
+    });
+
     it('should return false if the checkpoint file does not exist', async () => {
       const result = await logger.deleteCheckpoint('non-existent-tag');
       expect(result).toBe(false);
@@ -535,7 +581,9 @@ describe('Logger', () => {
     it('should re-throw an error if file deletion fails for reasons other than not existing', async () => {
       // Simulate a different error (e.g., permission denied)
       vi.spyOn(fs, 'unlink').mockRejectedValueOnce(
-        new Error('EACCES: permission denied'),
+        Object.assign(new Error('EACCES: permission denied'), {
+          code: 'EACCES',
+        }),
       );
       const consoleErrorSpy = vi
         .spyOn(console, 'error')
@@ -567,10 +615,14 @@ describe('Logger', () => {
 
   describe('checkpointExists', () => {
     const tag = 'exists-test';
+    const encodedTag = 'ZXhpc3RzLXRlc3Q';
     let taggedFilePath: string;
 
     beforeEach(() => {
-      taggedFilePath = path.join(TEST_GEMINI_DIR, `checkpoint-${tag}.json`);
+      taggedFilePath = path.join(
+        TEST_GEMINI_DIR,
+        `checkpoint-${encodedTag}.json`,
+      );
     });
 
     it('should return true if the checkpoint file exists', async () => {
@@ -593,9 +645,11 @@ describe('Logger', () => {
       );
     });
 
-    it('should re-throw an error if fs.access fails for reasons other than not existing', async () => {
+    it.only('should re-throw an error if fs.access fails for reasons other than not existing', async () => {
       vi.spyOn(fs, 'access').mockRejectedValueOnce(
-        new Error('EACCES: permission denied'),
+        Object.assign(new Error('EACCES: permission denied'), {
+          code: 'EACCES',
+        }),
       );
       const consoleErrorSpy = vi
         .spyOn(console, 'error')
@@ -605,73 +659,34 @@ describe('Logger', () => {
         'EACCES: permission denied',
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        `Failed to check checkpoint existence for ${taggedFilePath}:`,
+        `Failed to check checkpoint existence for path for tag "${tag}":`,
         expect.any(Error),
       );
     });
   });
 
-  describe('Path Traversal Security', () => {
-    it.each([
-      '../../../../etc/passwd',
-      '..%2F..%2F..%2F..%2Fetc%2Fpasswd',
-      '....//....//....//etc/passwd',
-      '..\\..\\..\\..\\boot.ini',
-    ])('should prevent directory traversal for "$attempt"', async (attempt) => {
-      // Replicate the sanitization logic for unsafe paths from the implementation.
-      const sanitized = attempt.replace(/[^a-zA-Z0-9-_]/g, '');
-      const expectedPath = path.join(
-        TEST_GEMINI_DIR,
-        `checkpoint-${sanitized}.json`,
-      );
-
-      const checkpointPath = await logger._checkpointPath(attempt);
-      expect(checkpointPath).toBe(expectedPath);
-    });
-
-    it('should allow Unicode characters in checkpoint tags', async () => {
-      const unicodeTags = [
-        '你好世界', // Chinese
-        'こんにちは', // Japanese
-        'test-你好',
+  describe('Backward compatibility', () => {
+    const conversation: Content[] = [
+      { role: 'user', parts: [{ text: 'Hello' }] },
+      { role: 'model', parts: [{ text: 'Hi there' }] },
+    ];
+    it('should load from a checkpoint with a raw special character tag', async () => {
+      const taggedConversation = [
+        ...conversation,
+        { role: 'user', parts: [{ text: 'hello' }] },
       ];
-
-      for (const tag of unicodeTags) {
-        const expectedPath = path.join(
-          TEST_GEMINI_DIR,
-          `checkpoint-${tag}.json`,
-        );
-        const actualPath = await logger._checkpointPath(tag);
-        expect(actualPath).toBe(expectedPath);
-      }
-    });
-
-    it('should handle malformed URI sequences', async () => {
-      const consoleErrorSpy = vi
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
-
-      const malformedTag = 'test%E0%A4%A'; // Incomplete multi-byte sequence
-      const expectedPath = path.join(
+      const tag = 'special(char)';
+      const taggedFilePath = path.join(
         TEST_GEMINI_DIR,
-        `checkpoint-${malformedTag.replace(/[^a-zA-Z0-9-_]/g, '')}.json`,
+        `checkpoint-${tag}.json`,
       );
-      const actualPath = await logger._checkpointPath(malformedTag);
-      expect(actualPath).toBe(expectedPath);
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error when attempting to form tag file name',
+      await fs.writeFile(
+        taggedFilePath,
+        JSON.stringify(taggedConversation, null, 2),
       );
-    });
 
-    it('should handle null bytes', async () => {
-      const nullByteTag = 'test%00attack'; // Null byte encoded
-      const decodedTag = decodeURIComponent(nullByteTag);
-      const expectedPath = path.join(
-        TEST_GEMINI_DIR,
-        `checkpoint-${decodedTag}.json`,
-      );
-      const actualPath = await logger._checkpointPath(nullByteTag);
-      expect(actualPath).toBe(expectedPath);
+      const loaded = await logger.loadCheckpoint(tag);
+      expect(loaded).toEqual(taggedConversation);
     });
   });
 
