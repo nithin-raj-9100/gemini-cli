@@ -55,7 +55,11 @@ export function detectIde(): DetectedIde | undefined {
   // Only VSCode-based integrations are currently supported.
   const isVsCode = process.env.TERM_PROGRAM === 'vscode';
   const isVsCodeInTmux =
-    process.env.TMUX && process.env.TERM_PROGRAM === 'tmux';
+    process.env.TMUX &&
+    process.env.TERM_PROGRAM === 'tmux' &&
+    (process.env.VSCODE_GIT_ASKPASS_NODE ||
+     process.env.VSCODE_GIT_ASKPASS_MAIN ||
+      process.env.VSCODE_GIT_IPC_HANDLE);
   if (!isVsCode && !isVsCodeInTmux) {
     return undefined;
   }

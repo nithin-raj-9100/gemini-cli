@@ -365,8 +365,5 @@ function getIdeServerHost() {
   if (isInContainer) {
     return 'host.docker.internal';
   }
-  if (process.env.TMUX) {
-    return '127.0.0.1';
-  }
-  return 'localhost';
+  return '127.0.0.1';
 }
