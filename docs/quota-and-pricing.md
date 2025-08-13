@@ -20,9 +20,9 @@ Your free usage limits depend on your authorization type:
 
 For users who authenticate by using their Google account to access Gemini Code Assist for individuals. This includes:
 
-- Model requests will be made across both Pro and Flash models as determined by Gemini CLI.
-- 1,000 model free requests / user / day
-- 60 model free requests / user / minute
+- Model requests will be made across the Gemini model family as determined by Gemini CLI.
+- 1,000 model requests / user / day
+- 60 model requests / user / minute
 
 Learn more at [Gemini Code Assist for Individuals Limits](https://developers.google.com/gemini-code-assist/resources/quotas#quotas-for-agent-mode-gemini-cli).
 
@@ -31,8 +31,8 @@ Learn more at [Gemini Code Assist for Individuals Limits](https://developers.goo
 If you are using a Gemini API key, you can also benefit from a free tier. This includes:
 
 - Model requests to Flash model only
-- 250 model free requests / user / day
-- 10 model free requests / user / minute
+- 250 model requests / user / day
+- 10 model requests / user / minute
 
 Learn more at [Gemini API Rate Limits](https://ai.google.dev/gemini-api/docs/rate-limits).
 
@@ -49,7 +49,7 @@ Learn more at [Vertex AI Express Mode Limits](https://cloud.google.com/vertex-ai
 
 If you use up your initial number of requests, you can upgrade your plan to continue to benefit from Gemini CLI by using the [Standard or Enterprise editions of Gemini Code Assist](https://cloud.google.com/products/gemini/pricing). Quotas and pricing are based on a fixed price subscription with assigned license seats. For predictable costs, you can log in with Google. This includes:
 
-- Model requests will be made across both Pro and Flash models as determined by Gemini CLI to preserve shared experience quality. Specific quota for different models is not specified.
+- Model requests will be made across the Gemini model family as determined by Gemini CLI.
 - Standard:
   - 1500 model requests / user / day
   - 120 model requests / user / minute
