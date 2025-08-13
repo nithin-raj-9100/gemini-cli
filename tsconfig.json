@@ -8,6 +8,10 @@
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "forceConsistentCasingInFileNames": true,
+<<<<<<< HEAD
+=======
+    // "noPropertyAccessFromIndexSignature": true,
+>>>>>>> 36077ab43b53f2cdff9a4134094c3bf2e29d45e4
     "noUnusedLocals": true,
     "strictBindCallApply": true,
     "strictFunctionTypes": true,
