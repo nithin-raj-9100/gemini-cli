@@ -23,9 +23,6 @@ const ESSENTIAL_VSCODE_VARS = [
 export function syncVsCodeEnvironmentToTmux(): void {
   if (!process.env.TMUX) return;
 
-  console.log('[tmux-env-sync] Syncing VS Code environment to TMUX...');
-
-  let syncCount = 0;
   for (const envVar of ESSENTIAL_VSCODE_VARS) {
     const value = process.env[envVar];
     if (value) {
@@ -34,18 +31,10 @@ export function syncVsCodeEnvironmentToTmux(): void {
           timeout: 2000,
           stdio: 'ignore',
         });
-        console.log(`[tmux-env-sync] Updated ${envVar}=${value}`);
-        syncCount++;
       } catch {
         // Skip failed syncs
       }
     }
-  }
-
-  if (syncCount > 0) {
-    console.log(
-      `[tmux-env-sync] Successfully synced ${syncCount} environment variables`,
-    );
   }
 }
 
@@ -58,12 +47,6 @@ export function detectCurrentVsCodePort(): string | undefined {
   }
 
   // In TMUX, always do active port discovery to avoid stale cached ports
-  console.log(
-    '[tmux-env-sync] Getting fresh environment from new shell process...',
-  );
-  console.log(
-    '[tmux-env-sync] Scanning for active VS Code IDE server ports...',
-  );
   return discoverActiveVsCodePort();
 }
 
@@ -102,21 +85,12 @@ function findVsCodeProcessPort(): string | undefined {
     );
 
     if (vsCodeProcs.trim()) {
-      console.log(
-        '[tmux-env-sync] Found VS Code processes with listening ports',
-      );
-
       // Extract ports from VS Code processes
       const portMatches = vsCodeProcs.match(/:(\d+)/g);
       if (portMatches) {
         for (const match of portMatches) {
           const port = match.substring(1);
-          console.log(`[tmux-env-sync] Testing VS Code process port: ${port}`);
-
           if (testMcpEndpoint(port)) {
-            console.log(
-              `[tmux-env-sync] Port ${port} confirmed as VS Code MCP server!`,
-            );
             return port;
           }
         }
@@ -148,10 +122,6 @@ function findMcpEndpointPort(): string | undefined {
         ...new Set(portMatches.map((match) => match.substring(1))),
       ];
 
-      console.log(
-        `[tmux-env-sync] Testing ${uniquePorts.length} listening ports for MCP endpoint...`,
-      );
-
       // Test ports in smart order: higher ports first (VS Code tends to use higher ports)
       const sortedPorts = uniquePorts
         .map((p) => parseInt(p, 10))
@@ -161,7 +131,6 @@ function findMcpEndpointPort(): string | undefined {
 
       for (const port of sortedPorts) {
         if (testMcpEndpoint(port.toString())) {
-          console.log(`[tmux-env-sync] Port ${port} responds to MCP endpoint!`);
           return port.toString();
         }
       }

@@ -28,14 +28,13 @@ export function detectVsCode(): boolean {
  */
 function detectVsCodeInTmux(): boolean {
   try {
-    // Primary method: Check TMUX global environment for original TERM_PROGRAM
-    const output = execSync('tmux show-environment -g | grep TERM_PROGRAM=', {
+    const output = execSync('tmux show-environment -g TERM_PROGRAM', {
       encoding: 'utf8',
       timeout: 3000,
       stdio: ['ignore', 'pipe', 'ignore'],
     });
 
-    return output.includes('TERM_PROGRAM=vscode');
+    return output.trim() === 'TERM_PROGRAM=vscode';
   } catch {
     return false;
   }
