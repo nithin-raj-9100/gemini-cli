@@ -544,5 +544,5 @@ function getIdeServerHost() {
   if (isInContainer) {
     return 'host.docker.internal';
   }
-  return '127.0.0.1';
+  return 'localhost';
 }

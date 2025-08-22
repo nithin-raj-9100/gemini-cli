@@ -11,12 +11,12 @@ import { execSync } from 'node:child_process';
  */
 export function detectVsCode(): boolean {
   // Quick check first - most common case
-  if (process.env.TERM_PROGRAM === 'vscode') {
+  if (process.env['TERM_PROGRAM'] === 'vscode') {
     return true;
   }
 
   // TMUX-specific detection
-  if (process.env.TMUX) {
+  if (process.env['TMUX']) {
     return detectVsCodeInTmux();
   }
 

@@ -21,7 +21,7 @@ const ESSENTIAL_VSCODE_VARS = [
  * Syncs VS Code environment to TMUX with debugging (will remove once approved)
  */
 export function syncVsCodeEnvironmentToTmux(): void {
-  if (!process.env.TMUX) return;
+  if (!process.env['TMUX']) return;
 
   for (const envVar of ESSENTIAL_VSCODE_VARS) {
     const value = process.env[envVar];
@@ -42,8 +42,8 @@ export function syncVsCodeEnvironmentToTmux(): void {
  * Detects VS Code port - always use active discovery in TMUX to avoid stale ports
  */
 export function detectCurrentVsCodePort(): string | undefined {
-  if (!process.env.TMUX) {
-    return process.env.GEMINI_CLI_IDE_SERVER_PORT;
+  if (!process.env['TMUX']) {
+    return process.env['GEMINI_CLI_IDE_SERVER_PORT'];
   }
 
   // In TMUX, always do active port discovery to avoid stale cached ports
@@ -147,7 +147,7 @@ function findMcpEndpointPort(): string | undefined {
  */
 function testMcpEndpoint(port: string): boolean {
   try {
-    execSync(`curl -s --connect-timeout 1 http://127.0.0.1:${port}/mcp`, {
+    execSync(`curl -s --connect-timeout 1 http://localhost:${port}/mcp`, {
       timeout: 2000,
       stdio: 'ignore',
     });
