@@ -4,22 +4,29 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type {
+  ToolCallConfirmationDetails,
+  ToolInvocation,
+  ToolResult,
+} from './tools.js';
 import {
   BaseDeclarativeTool,
   BaseToolInvocation,
   Kind,
-  ToolCallConfirmationDetails,
   ToolConfirmationOutcome,
-  ToolInvocation,
-  ToolResult,
 } from './tools.js';
 import { ToolErrorType } from './tool-error.js';
 import { getErrorMessage } from '../utils/errors.js';
-import { ApprovalMode, Config } from '../config/config.js';
-import { getResponseText } from '../utils/generateContentResponseUtilities.js';
+import type { Config } from '../config/config.js';
+import { ApprovalMode, DEFAULT_GEMINI_FLASH_MODEL } from '../config/config.js';
+import { getResponseText } from '../utils/partUtils.js';
 import { fetchWithTimeout, isPrivateIp } from '../utils/fetch.js';
 import { convert } from 'html-to-text';
 import { ProxyAgent, setGlobalDispatcher } from 'undici';
+import {
+  logWebFetchFallbackAttempt,
+  WebFetchFallbackAttemptEvent,
+} from '../telemetry/index.js';
 
 const URL_FETCH_TIMEOUT_MS = 10000;
 const MAX_CONTENT_LENGTH = 100000;
@@ -113,6 +120,7 @@ ${textContent}
         [{ role: 'user', parts: [{ text: fallbackPrompt }] }],
         {},
         signal,
+        DEFAULT_GEMINI_FLASH_MODEL,
       );
       const resultText = getResponseText(result) || '';
       return {
@@ -180,6 +188,10 @@ ${textContent}
     const isPrivate = isPrivateIp(url);
 
     if (isPrivate) {
+      logWebFetchFallbackAttempt(
+        this.config,
+        new WebFetchFallbackAttemptEvent('private_ip'),
+      );
       return this.executeFallback(signal);
     }
 
@@ -190,6 +202,7 @@ ${textContent}
         [{ role: 'user', parts: [{ text: userPrompt }] }],
         { tools: [{ urlContext: {} }] },
         signal, // Pass signal
+        DEFAULT_GEMINI_FLASH_MODEL,
       );
 
       console.debug(
@@ -238,6 +251,10 @@ ${textContent}
       }
 
       if (processingError) {
+        logWebFetchFallbackAttempt(
+          this.config,
+          new WebFetchFallbackAttemptEvent('primary_failed'),
+        );
         return this.executeFallback(signal);
       }
 

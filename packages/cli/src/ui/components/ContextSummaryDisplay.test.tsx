@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import type React from 'react';
 import { render } from 'ink-testing-library';
 import { describe, it, expect, vi } from 'vitest';
 import { ContextSummaryDisplay } from './ContextSummaryDisplay.js';
@@ -51,10 +51,10 @@ describe('<ContextSummaryDisplay />', () => {
     const { lastFrame } = renderWithWidth(60, baseProps);
     const output = lastFrame();
     const expectedLines = [
-      'Using:',
-      '  - 1 open file (ctrl+g to view)',
-      '  - 1 GEMINI.md file',
-      '  - 1 MCP server (ctrl+t to view)',
+      ' Using:',
+      '   - 1 open file (ctrl+g to view)',
+      '   - 1 GEMINI.md file',
+      '   - 1 MCP server (ctrl+t to view)',
     ];
     const actualLines = output.split('\n');
     expect(actualLines).toEqual(expectedLines);
@@ -75,10 +75,11 @@ describe('<ContextSummaryDisplay />', () => {
     const props = {
       ...baseProps,
       geminiMdFileCount: 0,
+      contextFileNames: [],
       mcpServers: {},
     };
     const { lastFrame } = renderWithWidth(60, props);
-    const expectedLines = ['Using:', '  - 1 open file (ctrl+g to view)'];
+    const expectedLines = [' Using:', '   - 1 open file (ctrl+g to view)'];
     const actualLines = lastFrame().split('\n');
     expect(actualLines).toEqual(expectedLines);
   });

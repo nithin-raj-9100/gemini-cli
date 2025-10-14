@@ -10,7 +10,7 @@ import { z } from 'zod';
 import * as schema from './schema.js';
 export * from './schema.js';
 
-import { WritableStream, ReadableStream } from 'node:stream/web';
+import type { WritableStream, ReadableStream } from 'node:stream/web';
 
 export class AgentSideConnection implements Client {
   #connection: Connection;

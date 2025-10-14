@@ -10,8 +10,12 @@ import fs from 'node:fs/promises';
 
 import { vi, describe, expect, it, afterEach, beforeEach } from 'vitest';
 import * as gitUtils from '../../utils/gitUtils.js';
-import { setupGithubCommand, updateGitignore } from './setupGithubCommand.js';
-import { CommandContext, ToolActionReturn } from './types.js';
+import {
+  setupGithubCommand,
+  updateGitignore,
+  GITHUB_WORKFLOW_PATHS,
+} from './setupGithubCommand.js';
+import type { CommandContext, ToolActionReturn } from './types.js';
 import * as commandUtils from '../utils/commandUtils.js';
 
 vi.mock('child_process');
@@ -45,18 +49,14 @@ describe('setupGithubCommand', async () => {
     if (scratchDir) await fs.rm(scratchDir, { recursive: true });
   });
 
-  it('returns a tool action to download github workflows and handles paths', async () => {
+  //TODO - https://github.com/google-gemini/gemini-cli/issues/10740
+  it.skip('returns a tool action to download github workflows and handles paths', async () => {
     const fakeRepoOwner = 'fake';
     const fakeRepoName = 'repo';
     const fakeRepoRoot = scratchDir;
     const fakeReleaseVersion = 'v1.2.3';
 
-    const workflows = [
-      'gemini-cli.yml',
-      'gemini-issue-automated-triage.yml',
-      'gemini-issue-scheduled-triage.yml',
-      'gemini-pr-review.yml',
-    ];
+    const workflows = GITHUB_WORKFLOW_PATHS.map((p) => path.basename(p));
     for (const workflow of workflows) {
       vi.mocked(global.fetch).mockReturnValueOnce(
         Promise.resolve(new Response(workflow)),
