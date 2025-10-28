@@ -4,19 +4,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { GroundingMetadata } from '@google/genai';
-import {
-  BaseDeclarativeTool,
-  BaseToolInvocation,
-  Kind,
-  ToolInvocation,
-  ToolResult,
-} from './tools.js';
+import { WEB_SEARCH_TOOL_NAME } from './tool-names.js';
+import type { GroundingMetadata } from '@google/genai';
+import type { ToolInvocation, ToolResult } from './tools.js';
+import { BaseDeclarativeTool, BaseToolInvocation, Kind } from './tools.js';
 import { ToolErrorType } from './tool-error.js';
 
 import { getErrorMessage } from '../utils/errors.js';
-import { Config } from '../config/config.js';
-import { getResponseText } from '../utils/generateContentResponseUtilities.js';
+import { type Config } from '../config/config.js';
+import { getResponseText } from '../utils/partUtils.js';
+import { DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js';
 
 interface GroundingChunkWeb {
   uri?: string;
@@ -83,6 +80,7 @@ class WebSearchToolInvocation extends BaseToolInvocation<
         [{ role: 'user', parts: [{ text: this.params.query }] }],
         { tools: [{ googleSearch: {} }] },
         signal,
+        DEFAULT_GEMINI_FLASH_MODEL,
       );
 
       const responseText = getResponseText(response);
@@ -128,11 +126,28 @@ class WebSearchToolInvocation extends BaseToolInvocation<
           // Sort insertions by index in descending order to avoid shifting subsequent indices
           insertions.sort((a, b) => b.index - a.index);
 
-          const responseChars = modifiedResponseText.split(''); // Use new variable
-          insertions.forEach((insertion) => {
-            responseChars.splice(insertion.index, 0, insertion.marker);
-          });
-          modifiedResponseText = responseChars.join(''); // Assign back to modifiedResponseText
+          // Use TextEncoder/TextDecoder since segment indices are UTF-8 byte positions
+          const encoder = new TextEncoder();
+          const responseBytes = encoder.encode(modifiedResponseText);
+          const parts: Uint8Array[] = [];
+          let lastIndex = responseBytes.length;
+          for (const ins of insertions) {
+            const pos = Math.min(ins.index, lastIndex);
+            parts.unshift(responseBytes.subarray(pos, lastIndex));
+            parts.unshift(encoder.encode(ins.marker));
+            lastIndex = pos;
+          }
+          parts.unshift(responseBytes.subarray(0, lastIndex));
+
+          // Concatenate all parts into a single buffer
+          const totalLength = parts.reduce((sum, part) => sum + part.length, 0);
+          const finalBytes = new Uint8Array(totalLength);
+          let offset = 0;
+          for (const part of parts) {
+            finalBytes.set(part, offset);
+            offset += part.length;
+          }
+          modifiedResponseText = new TextDecoder().decode(finalBytes);
         }
 
         if (sourceListFormatted.length > 0) {
@@ -170,11 +185,9 @@ export class WebSearchTool extends BaseDeclarativeTool<
   WebSearchToolParams,
   WebSearchToolResult
 > {
-  static readonly Name: string = 'google_web_search';
-
   constructor(private readonly config: Config) {
     super(
-      WebSearchTool.Name,
+      WEB_SEARCH_TOOL_NAME,
       'GoogleSearch',
       'Performs a web search using Google Search (via the Gemini API) and returns the results. This tool is useful for finding information on the internet based on a query.',
       Kind.Search,
