@@ -11,8 +11,6 @@ import {
   logIdeConnection,
   IdeConnectionEvent,
   IdeConnectionType,
-} from '@google/gemini-cli-core';
-import {
   getIdeInstaller,
   IDEConnectionStatus,
   ideContextStore,

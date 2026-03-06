@@ -8,9 +8,9 @@ import {
   render as inkRenderDirect,
   type Instance as InkInstance,
   type RenderOptions,
+  Box,
 } from 'ink';
 import { EventEmitter } from 'node:events';
-import { Box } from 'ink';
 import type React from 'react';
 import { Terminal } from '@xterm/headless';
 import { vi } from 'vitest';
